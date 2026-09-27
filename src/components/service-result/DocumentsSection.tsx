@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { ServiceDocument } from "@/types/service";
+import { LocalizedGovernmentService } from "@/types/service";
+import { SupportedLanguage } from "@/types/civic";
+import { getTranslations } from "@/data/translations";
 import { DocumentCheckIcon, CheckCircleIcon } from "../Icons";
 
 interface DocumentsSectionProps {
-  documents: ServiceDocument[];
+  documents: LocalizedGovernmentService["requiredDocuments"];
+  currentLang?: SupportedLanguage;
 }
 
-export function DocumentsSection({ documents }: DocumentsSectionProps) {
+export function DocumentsSection({ documents, currentLang = "en" }: DocumentsSectionProps) {
   const [checkedMap, setCheckedMap] = useState<Record<string, boolean>>({});
+  const t = getTranslations(currentLang);
 
   const toggleCheck = (name: string) => {
     setCheckedMap((prev) => ({
@@ -20,27 +24,27 @@ export function DocumentsSection({ documents }: DocumentsSectionProps) {
 
   const completedCount = Object.values(checkedMap).filter(Boolean).length;
   const totalCount = documents.length;
-  const progressPercent = Math.round((completedCount / totalCount) * 100);
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-            <span>Required Documents</span>
+            <span>{t.requiredDocuments || "Required Documents"}</span>
             <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold border border-blue-200">
-              {completedCount} of {totalCount} in hand
+              {completedCount} / {totalCount} {t.inHandCount || "in hand"}
             </span>
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Click to check off the documents you have prepared before applying.
+            {t.clickToCheckDocs || "Click to check off the documents you have prepared before applying."}
           </p>
         </div>
 
         {totalCount > 0 && (
           <div className="w-full sm:w-44">
             <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 mb-1">
-              <span>Readiness</span>
+              <span>{t.readiness || "Readiness"}</span>
               <span className="text-blue-700">{progressPercent}%</span>
             </div>
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -91,15 +95,19 @@ export function DocumentsSection({ documents }: DocumentsSectionProps) {
                     {doc.type}
                   </span>
                   {doc.isMandatory ? (
-                    <span className="text-[9px] font-bold text-red-600 uppercase">Mandatory</span>
+                    <span className="text-[9px] font-bold text-red-600 uppercase">
+                      {t.mandatoryBadge || "Mandatory"}
+                    </span>
                   ) : (
-                    <span className="text-[9px] font-medium text-slate-400 uppercase">Optional</span>
+                    <span className="text-[9px] font-medium text-slate-400 uppercase">
+                      {t.optionalBadge || "Optional"}
+                    </span>
                   )}
                 </div>
 
                 <p className="text-xs text-slate-600 leading-relaxed">{doc.description}</p>
                 <p className="text-[11px] text-slate-400 mt-1 italic">
-                  Acceptable: {doc.commonExamples}
+                  {t.acceptableDocs || "Acceptable:"} {doc.commonExamples}
                 </p>
               </div>
             </div>

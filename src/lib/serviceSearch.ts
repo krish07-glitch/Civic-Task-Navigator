@@ -1,4 +1,4 @@
-import { GovernmentService, SearchOutcome, ClarificationOption, ExtractedEntities } from "@/types/service";
+import { GovernmentService, SearchOutcome, ClarificationOption, ExtractedEntities, getLocalizedText } from "@/types/service";
 import { GOVERNMENT_SERVICES } from "@/data/services";
 import { IndianStateId } from "@/types/civic";
 
@@ -726,7 +726,8 @@ export function searchCivicService(
     }
 
     // Title match
-    const titleLower = service.title.toLowerCase();
+    const titleText = getLocalizedText(service.title, "en");
+    const titleLower = titleText.toLowerCase();
     if (normalized.includes(titleLower) || titleLower.includes(normalized)) {
       score += 60;
     }

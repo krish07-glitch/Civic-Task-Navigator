@@ -86,6 +86,10 @@ export interface ExampleTaskQuery {
   query: string;
   category: CivicServiceCategory;
   stateHint?: IndianStateId;
+  labelHi?: string;
+  queryHi?: string;
+  localizedLabels?: Partial<Record<SupportedLanguage, string>>;
+  localizedQueries?: Partial<Record<SupportedLanguage, string>>;
 }
 
 export type SupportedLanguage =

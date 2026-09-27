@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { CompassIcon, MenuIcon, CloseIcon, ShieldCheckIcon } from "./Icons";
 import { SupportedLanguage } from "@/types/civic";
-import { TRANSLATIONS } from "@/data/translations";
+import { getTranslations } from "@/data/translations";
 import { LanguageSelector } from "./LanguageSelector";
 
 interface NavbarProps {
@@ -14,7 +14,7 @@ interface NavbarProps {
 
 export function Navbar({ currentLang, onLanguageChange, onOpenPortalModal }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  const t = getTranslations(currentLang);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md transition-all">
@@ -25,7 +25,7 @@ export function Navbar({ currentLang, onLanguageChange, onOpenPortalModal }: Nav
           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
         </span>
         <span>
-          <strong>Citizen Advisory:</strong> Civic Task Navigator directs you to official Indian government portals (<strong>.gov.in / .nic.in</strong>). We never collect government fees.
+          {t.navAdvisory || "Citizen Advisory: Civic Task Navigator directs you to official Indian government portals (.gov.in / .nic.in). We never collect government fees."}
         </span>
       </div>
 
@@ -42,7 +42,7 @@ export function Navbar({ currentLang, onLanguageChange, onOpenPortalModal }: Nav
                   Civic Task Navigator
                 </span>
                 <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-emerald-50 text-emerald-800 border border-emerald-200/90">
-                  INDIA 🇮🇳
+                  {t.navCountryBadge || "INDIA 🇮🇳"}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 leading-none hidden sm:block">
@@ -57,25 +57,25 @@ export function Navbar({ currentLang, onLanguageChange, onOpenPortalModal }: Nav
               href="#how-it-works"
               className="text-xs font-semibold text-slate-600 hover:text-blue-700 hover:-translate-y-0.5 transition-all"
             >
-              How It Works
+              {t.navHowItWorks || "How It Works"}
             </a>
             <a
               href="#services"
               className="text-xs font-semibold text-slate-600 hover:text-blue-700 hover:-translate-y-0.5 transition-all"
             >
-              Indian Civic Services
+              {t.navServices || "Indian Civic Services"}
             </a>
             <a
               href="#trust"
               className="text-xs font-semibold text-slate-600 hover:text-blue-700 hover:-translate-y-0.5 transition-all"
             >
-              Official Portals Guarantee
+              {t.navTrust || "Official Portals Guarantee"}
             </a>
             <a
               href="#faq"
               className="text-xs font-semibold text-slate-600 hover:text-blue-700 hover:-translate-y-0.5 transition-all"
             >
-              FAQ
+              {t.navFaq || "FAQ"}
             </a>
           </nav>
 
@@ -128,28 +128,28 @@ export function Navbar({ currentLang, onLanguageChange, onOpenPortalModal }: Nav
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
           >
-            How It Works
+            {t.navHowItWorks || "How It Works"}
           </a>
           <a
             href="#services"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
           >
-            Indian Civic Services
+            {t.navServices || "Indian Civic Services"}
           </a>
           <a
             href="#trust"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
           >
-            Official Portals Guarantee
+            {t.navTrust || "Official Portals Guarantee"}
           </a>
           <a
             href="#faq"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
           >
-            FAQ
+            {t.navFaq || "FAQ"}
           </a>
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
             <button

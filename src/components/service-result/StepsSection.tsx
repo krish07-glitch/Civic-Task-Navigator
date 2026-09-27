@@ -1,16 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import { ServiceStep } from "@/types/service";
+import { LocalizedGovernmentService } from "@/types/service";
+import { SupportedLanguage } from "@/types/civic";
+import { getTranslations } from "@/data/translations";
 import { AlertCircleIcon, CheckCircleIcon, ShieldCheckIcon } from "../Icons";
 
 interface StepsSectionProps {
-  steps: ServiceStep[];
+  steps: LocalizedGovernmentService["steps"];
+  currentLang?: SupportedLanguage;
 }
 
-export function StepsSection({ steps }: StepsSectionProps) {
+export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
   // Track "Mark as done" state per step number
   const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
+  const t = getTranslations(currentLang);
 
   const toggleStepDone = (stepNumber: number) => {
     setCompletedSteps((prev) => ({
@@ -31,20 +35,20 @@ export function StepsSection({ steps }: StepsSectionProps) {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-                Official Step-by-Step Procedure
+                {t.officialProcedureTitle || "Official Step-by-Step Procedure"}
               </h3>
               <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
-                {totalCount} {totalCount === 1 ? "Step" : "Steps"}
+                {totalCount} {totalCount === 1 ? (t.stepCountSingular || "Step") : (t.stepsCount || "Steps")}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Verified milestones cross-referenced with authoritative official government portal manuals.
+              {t.stepsVerifiedSubtitle || "Verified milestones cross-referenced with authoritative official government portal manuals."}
             </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-bold text-slate-700">
-              {completedCount} of {totalCount} completed
+              {completedCount} / {totalCount} {t.completedCount || "completed"}
             </span>
             <span className="text-[11px] font-semibold text-slate-400">
               ({progressPercent}%)
@@ -110,10 +114,10 @@ export function StepsSection({ steps }: StepsSectionProps) {
                     }`}
                   >
                     {step.mode === "offline" || !step.isOnline
-                      ? "In-Person Attendance"
+                      ? (t.inPersonAttendance || "In-Person Attendance")
                       : step.mode === "hybrid"
-                      ? "Hybrid (Online + Physical)"
-                      : "Online (Portal / OTP)"}
+                      ? (t.hybridAttendance || "Hybrid (Online + Physical)")
+                      : (t.onlinePortalOtp || "Online (Portal / OTP)")}
                   </span>
 
                   {/* Explicit "Mark as done" Button / Checkbox */}
@@ -128,7 +132,7 @@ export function StepsSection({ steps }: StepsSectionProps) {
                     aria-label={`Mark step ${step.stepNumber} as ${isDone ? "incomplete" : "done"}`}
                   >
                     <CheckCircleIcon className={`w-3.5 h-3.5 ${isDone ? "text-white" : "text-slate-400"}`} />
-                    <span>{isDone ? "✓ Done" : "Mark as done"}</span>
+                    <span>{isDone ? (t.done || "✓ Done") : (t.markAsDone || "Mark as done")}</span>
                   </button>
                 </div>
               </div>
@@ -141,14 +145,14 @@ export function StepsSection({ steps }: StepsSectionProps) {
               {/* Authoritative Details: Official Portal & Estimated Duration */}
               <div className="flex flex-wrap items-center gap-3 pl-9 pt-1 text-[11px] text-slate-500">
                 <span className="font-semibold text-slate-700 flex items-center gap-1">
-                  <span className="text-slate-400">Department / Window:</span> {step.agencyOrPortal}
+                  <span className="text-slate-400">{t.deptWindow || "Department / Window:"}</span> {step.agencyOrPortal}
                 </span>
 
                 {step.estimatedDuration && (
                   <>
                     <span>•</span>
                     <span className="text-blue-700 font-medium">
-                      Est. Time: {step.estimatedDuration}
+                      {t.estTime || "Est. Time:"} {step.estimatedDuration}
                     </span>
                   </>
                 )}
@@ -159,7 +163,7 @@ export function StepsSection({ steps }: StepsSectionProps) {
                 <div className="ml-9 p-2 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center gap-1.5 text-[11px] text-slate-600">
                   <ShieldCheckIcon className="w-3.5 h-3.5 text-blue-700 shrink-0" />
                   <span className="truncate">
-                    <strong>Official Source:</strong>{" "}
+                    <strong>{t.officialSource || "Official Source:"}</strong>{" "}
                     {step.officialSource || step.sourceReference}
                   </span>
                 </div>
@@ -170,7 +174,7 @@ export function StepsSection({ steps }: StepsSectionProps) {
                 <div className="ml-9 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-2 text-xs text-amber-900">
                   <AlertCircleIcon className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Official Tip:</strong> {step.officialTip}
+                    <strong>{t.officialTip || "Official Tip:"}</strong> {step.officialTip}
                   </span>
                 </div>
               )}

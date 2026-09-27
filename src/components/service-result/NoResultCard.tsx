@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { SupportedLanguage } from "@/types/civic";
+import { getTranslations } from "@/data/translations";
 import { AlertCircleIcon, SearchIcon, SparklesIcon, CloseIcon } from "../Icons";
 
 interface NoResultCardProps {
@@ -8,6 +10,7 @@ interface NoResultCardProps {
   suggestions: string[];
   onSelectSuggestion: (query: string) => void;
   onClose: () => void;
+  currentLang?: SupportedLanguage;
 }
 
 export function NoResultCard({
@@ -15,7 +18,9 @@ export function NoResultCard({
   suggestions,
   onSelectSuggestion,
   onClose,
+  currentLang = "en",
 }: NoResultCardProps) {
+  const t = getTranslations(currentLang);
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl shadow-slate-200/50 space-y-6 animate-in fade-in zoom-in-95 duration-150">
       <div className="flex items-start justify-between gap-4">
@@ -25,13 +30,13 @@ export function NoResultCard({
           </div>
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-              Service Not Recognized
+              {t.serviceNotRecognized || "Service Not Recognized"}
             </span>
             <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-1.5">
-              We couldn&apos;t identify the exact government service
+              {t.couldNotIdentifyExact || "We couldn't identify the exact government service"}
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
-              We could not find an authentic government procedure matching &ldquo;<span className="font-semibold text-slate-800">{originalQuery}</span>&rdquo;. We never display inaccurate or fabricated government procedures.
+              {(t.couldNotFindMatching || "We could not find an authentic government procedure matching")} &ldquo;<span className="font-semibold text-slate-800">{originalQuery}</span>&rdquo;. {(t.neverDisplayFabricated || "We never display inaccurate or fabricated government procedures.")}
             </p>
           </div>
         </div>
@@ -48,17 +53,17 @@ export function NoResultCard({
       {/* Helpful Guidance Advice */}
       <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-2">
         <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide">
-          Tips for finding your procedure:
+          {t.tipsForFinding || "Tips for finding your procedure:"}
         </h4>
         <ul className="space-y-1.5 pl-4 list-disc text-slate-600">
           <li>
-            <strong>Describe what you want to do:</strong> e.g., <em>&ldquo;I want to apply for a driving licence&rdquo;</em> or <em>&ldquo;How to change Aadhaar address&rdquo;</em>.
+            {t.tipDescribe || "Describe what you want to do: e.g., 'I want to apply for a driving licence' or 'How to change Aadhaar address'."}
           </li>
           <li>
-            <strong>Include your state:</strong> e.g., <em>&ldquo;I want to apply for an income certificate in Maharashtra&rdquo;</em>.
+            {t.tipState || "Include your state: e.g., 'I want to apply for an income certificate in Maharashtra'."}
           </li>
           <li>
-            <strong>Ensure State/UT is selected:</strong> Check the location dropdown in the search box to filter state-specific services (like Aaple Sarkar).
+            {t.tipLocationDropdown || "Ensure State/UT is selected: Check the location dropdown in the search box to filter state-specific services (like Aaple Sarkar)."}
           </li>
         </ul>
       </div>
@@ -67,7 +72,7 @@ export function NoResultCard({
       <div>
         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 mb-3 flex items-center gap-1.5">
           <SparklesIcon className="w-4 h-4 text-amber-500" />
-          <span>Try one of these verified searches:</span>
+          <span>{t.tryVerifiedSearches || "Try one of these verified searches:"}</span>
         </h4>
         <div className="flex flex-wrap gap-2">
           {suggestions.map((sug, idx) => (

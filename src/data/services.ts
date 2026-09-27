@@ -1,4 +1,7 @@
-import { GovernmentService } from "@/types/service";
+import { GovernmentService, LocalizedGovernmentService, getLocalizedText } from "@/types/service";
+import { SupportedLanguage } from "@/types/civic";
+import { SERVICE_TRANSLATIONS } from "./serviceTranslations";
+import { getRegionalServiceTranslation } from "./service-translations";
 
 const RAW_SERVICES = [
   // 1. Driving Licence (MoRTH Sarathi)
@@ -3032,3 +3035,157 @@ export const GOVERNMENT_SERVICES: GovernmentService[] = RAW_SERVICES.map((s: any
     warnings: s.warnings,
   };
 });
+
+export function getLocalizedService(
+  service: GovernmentService,
+  lang: SupportedLanguage = "en"
+): LocalizedGovernmentService {
+  const reg = getRegionalServiceTranslation(service.id, lang);
+  const tr = SERVICE_TRANSLATIONS[service.id];
+
+  const title = reg?.title || (tr?.title ? getLocalizedText(tr.title, lang) : getLocalizedText(service.title, lang));
+  const name = reg?.title || (tr?.title ? getLocalizedText(tr.title, lang) : getLocalizedText(service.name || service.title, lang));
+  const category = reg?.category || (tr?.category ? getLocalizedText(tr.category, lang) : getLocalizedText(service.category, lang));
+  const description = reg?.shortDescription || (tr?.shortDescription ? getLocalizedText(tr.shortDescription, lang) : getLocalizedText(service.description || service.shortDescription, lang));
+  const shortDescription = reg?.shortDescription || (tr?.shortDescription ? getLocalizedText(tr.shortDescription, lang) : getLocalizedText(service.shortDescription || service.description, lang));
+  const fullOverview = reg?.fullOverview || (tr?.fullOverview ? getLocalizedText(tr.fullOverview, lang) : getLocalizedText(service.fullOverview, lang));
+  const authority = reg?.authority || (tr?.authority ? getLocalizedText(tr.authority, lang) : getLocalizedText(service.authority || service.department, lang));
+  const department = reg?.department || (tr?.department ? getLocalizedText(tr.department, lang) : getLocalizedText(service.department || service.authority, lang));
+  const source = tr?.source ? getLocalizedText(tr.source, lang) : getLocalizedText(service.source || service.officialSource, lang);
+  const officialSource = tr?.officialSource ? getLocalizedText(tr.officialSource, lang) : getLocalizedText(service.officialSource || service.source, lang);
+  const availability = tr?.availability ? getLocalizedText(tr.availability, lang) : (service.availability ? getLocalizedText(service.availability, lang) : undefined);
+  const onlineAvailable = tr?.onlineAvailable ? getLocalizedText(tr.onlineAvailable, lang) : getLocalizedText(service.onlineAvailable, lang);
+
+  const eligibility = reg?.eligibility && reg.eligibility.length > 0
+    ? reg.eligibility
+    : (tr?.eligibility && tr.eligibility.length > 0
+      ? tr.eligibility.map((e) => getLocalizedText(e, lang))
+      : (service.eligibility || []).map((e) => getLocalizedText(e, lang)));
+
+  const requiredDocuments = reg?.requiredDocuments && reg.requiredDocuments.length > 0
+    ? reg.requiredDocuments.map((d) => ({
+        name: d.name,
+        type: d.type,
+        description: d.description,
+        commonExamples: d.commonExamples,
+        isMandatory: d.isMandatory,
+      }))
+    : (tr?.requiredDocuments && tr.requiredDocuments.length > 0
+      ? tr.requiredDocuments.map((d) => ({
+          name: getLocalizedText(d.name, lang),
+          type: getLocalizedText(d.type, lang),
+          description: getLocalizedText(d.description, lang),
+          commonExamples: getLocalizedText(d.commonExamples, lang),
+          isMandatory: d.isMandatory,
+        }))
+      : (service.requiredDocuments || []).map((d) => ({
+          name: getLocalizedText(d.name, lang),
+          type: getLocalizedText(d.type, lang),
+          description: getLocalizedText(d.description, lang),
+          commonExamples: getLocalizedText(d.commonExamples, lang),
+          isMandatory: d.isMandatory,
+        })));
+
+  const steps = reg?.steps && reg.steps.length > 0
+    ? reg.steps.map((st) => ({
+        stepNumber: st.stepNumber,
+        title: st.title,
+        description: st.description,
+        agencyOrPortal: st.agencyOrPortal,
+        isOnline: st.isOnline,
+        estimatedDuration: st.estimatedDuration,
+        mode: st.mode,
+        officialSource: st.officialSource,
+        sourceReference: st.sourceReference,
+        officialTip: st.officialTip,
+      }))
+    : (tr?.steps && tr.steps.length > 0
+      ? tr.steps.map((st) => ({
+          stepNumber: st.stepNumber,
+          title: getLocalizedText(st.title, lang),
+          description: getLocalizedText(st.description, lang),
+          agencyOrPortal: getLocalizedText(st.agencyOrPortal, lang),
+          isOnline: st.isOnline,
+          estimatedDuration: getLocalizedText(st.estimatedDuration, lang),
+          mode: st.mode,
+          officialSource: st.officialSource ? getLocalizedText(st.officialSource, lang) : undefined,
+          sourceReference: st.sourceReference ? getLocalizedText(st.sourceReference, lang) : undefined,
+          officialTip: st.officialTip ? getLocalizedText(st.officialTip, lang) : undefined,
+        }))
+      : (service.steps || []).map((st) => ({
+          stepNumber: st.stepNumber,
+          title: getLocalizedText(st.title, lang),
+          description: getLocalizedText(st.description, lang),
+          agencyOrPortal: getLocalizedText(st.agencyOrPortal, lang),
+          isOnline: st.isOnline,
+          estimatedDuration: getLocalizedText(st.estimatedDuration, lang),
+          mode: st.mode,
+          officialSource: st.officialSource ? getLocalizedText(st.officialSource, lang) : undefined,
+          sourceReference: st.sourceReference ? getLocalizedText(st.sourceReference, lang) : undefined,
+          officialTip: st.officialTip ? getLocalizedText(st.officialTip, lang) : undefined,
+        })));
+
+  const fees = {
+    amountText: reg?.fees?.amountText || (tr?.fees ? getLocalizedText(tr.fees.amountText, lang) : getLocalizedText(service.fees?.amountText, lang)),
+    isVerified: service.fees?.isVerified ?? true,
+    verificationSource: reg?.fees?.verificationSource || (tr?.fees?.verificationSource ? getLocalizedText(tr.fees.verificationSource, lang) : (service.fees?.verificationSource ? getLocalizedText(service.fees.verificationSource, lang) : undefined)),
+  };
+
+  const processingTime = {
+    timeText: reg?.processingTime?.timeText || (tr?.processingTime ? getLocalizedText(tr.processingTime.timeText, lang) : getLocalizedText(service.processingTime?.timeText, lang)),
+    isVerified: service.processingTime?.isVerified ?? true,
+    statutoryAct: reg?.processingTime?.statutoryAct || (tr?.processingTime?.statutoryAct ? getLocalizedText(tr.processingTime.statutoryAct, lang) : (service.processingTime?.statutoryAct ? getLocalizedText(service.processingTime.statutoryAct, lang) : undefined)),
+  };
+
+  const officialPortal = {
+    name: reg?.officialPortal?.name || (tr?.officialPortal ? getLocalizedText(tr.officialPortal.name, lang) : getLocalizedText(service.officialPortal?.name, lang)),
+    url: service.officialPortal?.url ?? null,
+    domain: service.officialPortal?.domain || "services.india.gov.in",
+    isVerified: service.officialPortal?.isVerified ?? true,
+    portalType: service.officialPortal?.portalType,
+    notes: reg?.officialPortal?.notes || (tr?.officialPortal?.notes ? getLocalizedText(tr.officialPortal.notes, lang) : (service.officialPortal?.notes ? getLocalizedText(service.officialPortal.notes, lang) : undefined)),
+  };
+
+  const feeInfo = tr?.feeInfo
+    ? getLocalizedText(tr.feeInfo, lang)
+    : (service.feeInfo ? getLocalizedText(service.feeInfo, lang) : undefined);
+
+  const processingInfo = tr?.processingInfo
+    ? getLocalizedText(tr.processingInfo, lang)
+    : (service.processingInfo ? getLocalizedText(service.processingInfo, lang) : undefined);
+
+  const warnings = tr?.warnings
+    ? tr.warnings.map((w) => getLocalizedText(w, lang))
+    : service.warnings?.map((w) => getLocalizedText(w, lang));
+
+  const disclaimer = tr?.disclaimer
+    ? getLocalizedText(tr.disclaimer, lang)
+    : (service.disclaimer ? getLocalizedText(service.disclaimer, lang) : undefined);
+
+  return {
+    ...service,
+    name,
+    title,
+    category,
+    description,
+    shortDescription,
+    fullOverview,
+    authority,
+    department,
+    availability,
+    onlineAvailable,
+    source,
+    officialSource,
+    eligibility,
+    requiredDocuments,
+    steps,
+    applicationSteps: steps,
+    fees,
+    feeInfo,
+    processingTime,
+    processingInfo,
+    officialPortal,
+    warnings,
+    disclaimer,
+  };
+}

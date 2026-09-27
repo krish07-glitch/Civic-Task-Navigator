@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { SearchOutcome, ClarificationOption, GovernmentService } from "@/types/service";
 import { SupportedLanguage } from "@/types/civic";
 import { getLocalizedOfficialUrl } from "@/lib/localizedUrls";
+import { getLocalizedService } from "@/data/services";
+import { getTranslations } from "@/data/translations";
 import { ServiceHeader } from "./ServiceHeader";
 import { EligibilitySection } from "./EligibilitySection";
 import { DocumentsSection } from "./DocumentsSection";
@@ -31,6 +33,8 @@ export function ServiceResult({
   onSelectAlternative,
   onSelectSuggestion,
 }: ServiceResultProps) {
+  const t = getTranslations(currentLang);
+
   const handlePrint = () => {
     window.print();
   };
@@ -44,6 +48,7 @@ export function ServiceResult({
           subprompt={outcome.subprompt}
           options={outcome.options}
           originalQuery={outcome.originalQuery}
+          currentLang={currentLang}
           onSelectOption={onSelectClarification}
           onClose={onClear}
         />
@@ -58,6 +63,7 @@ export function ServiceResult({
         <NoResultCard
           originalQuery={outcome.originalQuery}
           suggestions={outcome.suggestions}
+          currentLang={currentLang}
           onSelectSuggestion={onSelectSuggestion}
           onClose={onClear}
         />
@@ -66,7 +72,16 @@ export function ServiceResult({
   }
 
   // Case 3: Valid Government Service Found
-  const { service, matchedState, stateMatchedFromQuery, alternativeServices } = outcome;
+  const { service: rawService, matchedState, stateMatchedFromQuery, alternativeServices } = outcome;
+
+  // Resolve service for currently selected language immediately
+  const service = useMemo(() => getLocalizedService(rawService, currentLang), [rawService, currentLang]);
+
+  // Resolve alternative services in selected language
+  const localizedAlts = useMemo(
+    () => alternativeServices?.map((alt) => getLocalizedService(alt, currentLang)),
+    [alternativeServices, currentLang]
+  );
 
   return (
     <section
@@ -79,16 +94,16 @@ export function ServiceResult({
           <button
             onClick={handlePrint}
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Print Procedure Roadmap"
+            title={t.printTitle || "Print Procedure Roadmap"}
           >
             <PrinterIcon className="w-4 h-4 text-slate-500" />
-            <span>Print</span>
+            <span>{t.printRoadmap || "Print"}</span>
           </button>
           <button
             onClick={onClear}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-            aria-label="Close search result"
-            title="Close result"
+            aria-label={t.closeResult || "Close result"}
+            title={t.closeResult || "Close result"}
           >
             <CloseIcon className="w-5 h-5" />
           </button>
@@ -102,6 +117,7 @@ export function ServiceResult({
             matchedCityOrDistrict={outcome.matchedCityOrDistrict}
             stateMatchedFromQuery={stateMatchedFromQuery}
             extractedEntities={outcome.extractedEntities}
+            currentLang={currentLang}
           />
         </div>
 
@@ -118,24 +134,24 @@ export function ServiceResult({
 
         {/* 3. Eligibility Criteria */}
         <div className="animate-fade-in-up stagger-3">
-          <EligibilitySection eligibility={service.eligibility} />
+          <EligibilitySection eligibility={service.eligibility} currentLang={currentLang} />
         </div>
 
         {/* 4. Required Documents Pre-Check */}
         <div className="animate-fade-in-up stagger-3">
-          <DocumentsSection documents={service.requiredDocuments} />
+          <DocumentsSection documents={service.requiredDocuments} currentLang={currentLang} />
         </div>
 
         {/* 5. Sequential Step-by-Step Procedure */}
         <div className="animate-fade-in-up stagger-4">
-          <StepsSection steps={service.steps} />
+          <StepsSection steps={service.steps} currentLang={currentLang} />
         </div>
 
         {/* Warnings & Legal Notes (If any) */}
         {service.warnings && service.warnings.length > 0 && (
           <div className="animate-fade-in-up stagger-4 p-4 sm:p-5 rounded-xl bg-amber-50/70 border border-amber-200/90 space-y-2 text-xs text-amber-900">
             <h4 className="font-bold text-amber-950 uppercase tracking-wide">
-              Important Official Warnings & Notes:
+              {t.importantWarnings || "Important Official Warnings & Notes:"}
             </h4>
             <ul className="space-y-1.5 pl-4 list-disc text-amber-900">
               {service.warnings.map((warn, wIdx) => (
@@ -148,13 +164,13 @@ export function ServiceResult({
         )}
 
         {/* Related Alternative Services (If any) */}
-        {alternativeServices && alternativeServices.length > 0 && (
+        {localizedAlts && localizedAlts.length > 0 && (
           <div className="animate-fade-in-up stagger-5 pt-4 border-t border-slate-200 space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Related Official Services you might also need:
+              {t.relatedServices || "Related Official Services you might also need:"}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {alternativeServices.map((alt) => (
+              {localizedAlts.map((alt) => (
                 <button
                   key={alt.id}
                   type="button"
@@ -176,7 +192,7 @@ export function ServiceResult({
 
         {/* 6. Independent Platform Transparency Disclaimer */}
         <div className="animate-fade-in-up stagger-5">
-          <ServiceDisclaimer />
+          <ServiceDisclaimer currentLang={currentLang} />
         </div>
 
         {/* Bottom Actions Footer */}
@@ -185,7 +201,7 @@ export function ServiceResult({
             onClick={onClear}
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/90 text-slate-700 text-xs font-bold transition-all cursor-pointer hover:-translate-y-0.5"
           >
-            ← Search Another Procedure
+            {t.searchAnotherBtn || "← Search Another Procedure"}
           </button>
 
           {service.officialPortal.url ? (
@@ -195,12 +211,15 @@ export function ServiceResult({
               rel="noopener noreferrer"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold shadow-md shadow-blue-700/20 hover:shadow-lg hover:shadow-blue-700/30 transition-all duration-200 hover:-translate-y-0.5 group cursor-pointer"
             >
-              <span>Proceed to {service.officialPortal.domain}</span>
+              <span>
+                {t.proceedToDomain ? `${t.proceedToDomain} ` : "Proceed to "}
+                {service.officialPortal.domain}
+              </span>
               <ArrowRightIcon className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </a>
           ) : (
             <span className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold">
-              Jurisdictional Local Authority Service
+              {t.jurisdictionalServiceNotice || "Jurisdictional Local Authority Service"}
             </span>
           )}
         </div>

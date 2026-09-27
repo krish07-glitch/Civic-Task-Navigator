@@ -14,7 +14,7 @@ import { searchCivicService } from "@/lib/serviceSearch";
 import { ServiceResult } from "@/components/service-result/ServiceResult";
 import { CIVIC_PROCEDURES } from "@/data/civicData";
 import { CivicProcedure, IndianStateId, SupportedLanguage } from "@/types/civic";
-import { SearchOutcome, ClarificationOption, GovernmentService } from "@/types/service";
+import { SearchOutcome, ClarificationOption, GovernmentService, getLocalizedText } from "@/types/service";
 
 export default function Home() {
   const [currentLang, setCurrentLang] = useState<SupportedLanguage>("en");
@@ -87,7 +87,7 @@ export default function Home() {
                 matchedState: selectedState,
                 stateMatchedFromQuery: false,
                 confidence: "high",
-                mappedCategory: alt.category,
+                mappedCategory: getLocalizedText(alt.category, "en"),
               });
               setTimeout(() => {
                 const el = document.getElementById("search-result-view");
@@ -115,11 +115,11 @@ export default function Home() {
         <TrustStats currentLang={currentLang} />
 
         {/* 5. Frequently Asked Questions */}
-        <FaqSection />
+        <FaqSection currentLang={currentLang} />
       </main>
 
       {/* Clean Footer */}
-      <Footer />
+      <Footer currentLang={currentLang} />
 
       {/* Interactive Procedure Roadmap Modal with Checkable Pre-Flight Documents */}
       <ProcedureModal

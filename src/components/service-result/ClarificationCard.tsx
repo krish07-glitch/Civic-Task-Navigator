@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import { ClarificationOption } from "@/types/service";
+import { ClarificationOption, getLocalizedText } from "@/types/service";
+import { SupportedLanguage } from "@/types/civic";
+import { getTranslations } from "@/data/translations";
 import { HelpCircleIcon, ArrowRightIcon, CloseIcon } from "../Icons";
 
 interface ClarificationCardProps {
@@ -11,6 +13,7 @@ interface ClarificationCardProps {
   originalQuery: string;
   onSelectOption: (option: ClarificationOption) => void;
   onClose: () => void;
+  currentLang?: SupportedLanguage;
 }
 
 export function ClarificationCard({
@@ -20,7 +23,9 @@ export function ClarificationCard({
   originalQuery,
   onSelectOption,
   onClose,
+  currentLang = "en",
 }: ClarificationCardProps) {
+  const t = getTranslations(currentLang);
   return (
     <div className="rounded-2xl border border-blue-200/90 bg-white/95 backdrop-blur-md p-6 sm:p-8 shadow-xl shadow-blue-500/5 space-y-6 animate-fade-in-up">
       {/* Header */}
@@ -31,7 +36,7 @@ export function ClarificationCard({
           </div>
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              Clarification Needed
+              {t.clarificationNeeded || "Clarification Needed"}
             </span>
             <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-1.5">
               {prompt}
@@ -45,7 +50,7 @@ export function ClarificationCard({
         <button
           onClick={onClose}
           className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-          aria-label="Dismiss clarification"
+          aria-label={t.dismissClarification || "Dismiss clarification"}
         >
           <CloseIcon className="w-5 h-5" />
         </button>
@@ -53,7 +58,7 @@ export function ClarificationCard({
 
       {/* Query echo */}
       <div className="text-xs text-slate-500 bg-slate-50/90 px-3.5 py-2.5 rounded-xl border border-slate-200/70 flex items-center gap-2">
-        <span className="font-semibold text-slate-700">Your query:</span>
+        <span className="font-semibold text-slate-700">{t.yourQuery || "Your query:"}</span>
         <span className="font-mono text-slate-900 truncate">“{originalQuery}”</span>
       </div>
 
@@ -68,15 +73,15 @@ export function ClarificationCard({
           >
             <div>
               <h4 className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors mb-1">
-                {opt.label}
+                {getLocalizedText(opt.label, currentLang)}
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                {opt.description}
+                {getLocalizedText(opt.description, currentLang)}
               </p>
             </div>
 
             <div className="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-700">
-              <span>Select this service</span>
+              <span>{t.selectThisService || "Select this service"}</span>
               <ArrowRightIcon className="w-3.5 h-3.5 group-hover:translate-x-1.5 transition-transform duration-200" />
             </div>
           </button>

@@ -8,10 +8,10 @@ import {
   DocumentCheckIcon,
   ArrowRightIcon,
   ShieldCheckIcon,
-  SparklesIcon,
-  LandmarkIcon,
 } from "./Icons";
-import { TRANSLATIONS } from "@/data/translations";
+import { getTranslations } from "@/data/translations";
+import { SERVICE_TRANSLATIONS } from "@/data/serviceTranslations";
+import { getLocalizedText } from "@/types/service";
 
 interface CommonServicesProps {
   currentLang?: SupportedLanguage;
@@ -19,6 +19,194 @@ interface CommonServicesProps {
   selectedState: IndianStateId;
   onSelectProcedure: (procedure: CivicProcedure) => void;
 }
+
+const CATEGORY_NAMES: Record<CivicServiceCategory | "All", Record<SupportedLanguage, string>> = {
+  All: {
+    en: "All Categories",
+    hi: "सभी श्रेणियां",
+    mr: "सर्व श्रेणी",
+    gu: "બધી શ્રેણીઓ",
+    ta: "அனைத்து வகைகள்",
+    te: "అన్ని వర్గాలు",
+    bn: "সকল বিভাগ",
+    kn: "ಎಲ್ಲಾ ವರ್ಗಗಳು",
+    ml: "എല്ലാ വിഭാഗങ്ങളും",
+    pa: "ਸਾਰੀਆਂ ਸ਼੍ਰੇਣੀਆਂ",
+  },
+  "Aadhaar & Identity": {
+    en: "Aadhaar & Identity",
+    hi: "आधार एवं पहचान",
+    mr: "आधार आणि ओळख",
+    gu: "આધાર અને ઓળખ",
+    ta: "ஆதார் மற்றும் அடையாளம்",
+    te: "ఆధార్ & గుర్తింపు",
+    bn: "আধার ও পরিচয়",
+    kn: "ಆಧಾರ್ ಮತ್ತು ಗುರುತು",
+    ml: "ആധാർ & തിരിച്ചറിയൽ",
+    pa: "ਆਧਾਰ ਅਤੇ ਪਛਾਣ",
+  },
+  "Tax & Business": {
+    en: "Tax & Business",
+    hi: "कर एवं व्यवसाय",
+    mr: "कर आणि व्यवसाय",
+    gu: "કર અને વ્યવસાય",
+    ta: "வரி மற்றும் வணிகம்",
+    te: "పన్ను & వ్యాపారం",
+    bn: "কর ও ব্যবসা",
+    kn: "ತೆರಿಗೆ ಮತ್ತು ವ್ಯವಹಾರ",
+    ml: "നികുതിയും ബിസിനസ്സും",
+    pa: "ਟੈਕਸ ਅਤੇ ਵਪਾਰ",
+  },
+  Transport: {
+    en: "Transport (DL & RC)",
+    hi: "परिवहन (DL एवं RC)",
+    mr: "वाहतूक (DL आणि RC)",
+    gu: "વાહનવ્યવહાર (DL અને RC)",
+    ta: "போக்குவரத்து (DL & RC)",
+    te: "రవాణా (DL & RC)",
+    bn: "পরিবহন (DL এবং RC)",
+    kn: "ಸಾರಿಗೆ (DL ಮತ್ತು RC)",
+    ml: "ഗതാഗതം (DL & RC)",
+    pa: "ਆਵਾਜਾਈ (DL ਅਤੇ RC)",
+  },
+  "Passport & Travel": {
+    en: "Passport & Travel",
+    hi: "पासपोर्ट एवं यात्रा",
+    mr: "पासपोर्ट आणि प्रवास",
+    gu: "પાસપોર્ટ અને મુસાફરી",
+    ta: "பாஸ்போர்ட் & பயணம்",
+    te: "పాస్‌పోర్ట్ & ప్రయాణం",
+    bn: "পাসপোর্ট ও ভ্রমণ",
+    kn: "ಪಾಸ್‌ಪೋರ್ಟ್ ಮತ್ತು ಪ್ರಯಾಣ",
+    ml: "പാസ്പോർട്ട് & യാത്ര",
+    pa: "ਪਾਸਪੋਰਟ ਅਤੇ ਯਾਤਰਾ",
+  },
+  "Voter Services": {
+    en: "Voter Services",
+    hi: "मतदाता सेवाएं",
+    mr: "मतदार सेवा",
+    gu: "મતદાર સેવાઓ",
+    ta: "வாக்காளர் சேவைகள்",
+    te: "ఓటరు సేవలు",
+    bn: "ভোটার পরিষেবা",
+    kn: "ಮತದಾರರ ಸೇವೆಗಳು",
+    ml: "വോട്ടർ സേവനങ്ങൾ",
+    pa: "ਵੋਟਰ ਸੇਵਾਵਾਂ",
+  },
+  "Certificates & Documents": {
+    en: "Certificates & Documents",
+    hi: "प्रमाण पत्र एवं दस्तावेज़",
+    mr: "प्रमाणपत्रे आणि कागदपत्रे",
+    gu: "પ્રમાણપત્રો અને દસ્તાવેજો",
+    ta: "சான்றிதழ்கள் & ஆவணங்கள்",
+    te: "ధృవీకరణ పత్రాలు & పత్రాలు",
+    bn: "শংসাপত্র ও নথি",
+    kn: "ಪ್ರಮಾಣಪತ್ರಗಳು ಮತ್ತು ದಾಖಲೆಗಳು",
+    ml: "സർട്ടിഫിക്കറ്റുകളും രേഖകളും",
+    pa: "ਸਰਟੀਫਿਕੇਟ ਅਤੇ ਦਸਤਾਵੇਜ਼",
+  },
+  "Government Schemes & Benefits": {
+    en: "Schemes & Benefits",
+    hi: "सरकारी योजनाएं",
+    mr: "सरकारी योजना व लाभ",
+    gu: "સરકારી યોજનાઓ અને લાભો",
+    ta: "அரசு திட்டங்கள் & பலன்கள்",
+    te: "ప్రభుత్వ పథకాలు & ప్రయోజనాలు",
+    bn: "সরকারি প্রকল্প ও সুবিধা",
+    kn: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು ಮತ್ತು ಪ್ರಯೋಜನಗಳು",
+    ml: "സർക്കാർ പദ്ധതികളും ആനുകൂല്യങ്ങളും",
+    pa: "ਸਰਕਾਰੀ ਸਕੀਮਾਂ ਅਤੇ ਲਾਭ",
+  },
+  Education: {
+    en: "Education & Scholarships",
+    hi: "शिक्षा एवं छात्रवृत्ति",
+    mr: "शिक्षण आणि शिष्यवृत्ती",
+    gu: "શિક્ષણ અને શિષ્યવૃત્તિ",
+    ta: "கல்வி & உதவித்தொகை",
+    te: "విద్య & స్కాలర్‌షిప్‌లు",
+    bn: "শিক্ষা ও বৃত্তি",
+    kn: "ಶಿಕ್ಷಣ ಮತ್ತು ವಿದ್ಯಾರ್ಥಿವೇತನ",
+    ml: "വിദ്യാഭ്യാസവും സ്കോളർഷിപ്പും",
+    pa: "ਸਿੱਖਿਆ ਅਤੇ ਵਜ਼ੀਫ਼ੇ",
+  },
+  "Maharashtra / State Services": {
+    en: "State Services",
+    hi: "राज्य सेवाएं",
+    mr: "राज्य सेवा",
+    gu: "રાજ્ય સેવાઓ",
+    ta: "மாநில சேவைகள்",
+    te: "రాష్ట్ర సేవలు",
+    bn: "রাজ্য পরিষেবা",
+    kn: "ರಾಜ್ಯ ಸೇವೆಗಳು",
+    ml: "സംസ്ഥാന സേവനങ്ങൾ",
+    pa: "ਰਾਜ ਸੇਵਾਵਾਂ",
+  },
+  "Local Civic Services": {
+    en: "Local Civic & Municipal",
+    hi: "स्थानीय नागरिक सेवाएं",
+    mr: "स्थानिक नागरी सेवा",
+    gu: "સ્થાનિક નાગરિક સેવાઓ",
+    ta: "உள்ளூர் குடிமை சேவைகள்",
+    te: "స్థానిక పౌర సేవలు",
+    bn: "স্থানীয় পৌর পরিষেবা",
+    kn: "ಸ್ಥಳೀಯ ನಾಗರಿಕ ಸೇವೆಗಳು",
+    ml: "പ്രാദേശിക പൗര സേവനങ്ങൾ",
+    pa: "ਸਥਾਨਕ ਨਾਗਰਿਕ ਸੇਵਾਵਾਂ",
+  },
+};
+
+const CATEGORY_LIST: { value: CivicServiceCategory | "All"; emoji: string }[] = [
+  { value: "All", emoji: "✨" },
+  { value: "Aadhaar & Identity", emoji: "🪪" },
+  { value: "Tax & Business", emoji: "💼" },
+  { value: "Transport", emoji: "🚗" },
+  { value: "Passport & Travel", emoji: "✈️" },
+  { value: "Voter Services", emoji: "🗳️" },
+  { value: "Certificates & Documents", emoji: "📜" },
+  { value: "Government Schemes & Benefits", emoji: "🏛️" },
+  { value: "Education", emoji: "🎓" },
+  { value: "Maharashtra / State Services", emoji: "🚩" },
+  { value: "Local Civic Services", emoji: "🏙️" },
+];
+
+const DIFFICULTY_MAP: Record<CivicProcedure["difficulty"], Record<SupportedLanguage, string>> = {
+  Simple: {
+    en: "Simple",
+    hi: "सरल",
+    mr: "सोपे",
+    gu: "સરળ",
+    ta: "எளிய",
+    te: "సులభం",
+    bn: "সহজ",
+    kn: "ಸುಲಭ",
+    ml: "ലളിതം",
+    pa: "ਸਰਲ",
+  },
+  Moderate: {
+    en: "Moderate",
+    hi: "मध्यम",
+    mr: "मध्यम",
+    gu: "મધ્યમ",
+    ta: "நடுத்தர",
+    te: "మధ్యస్థం",
+    bn: "মাঝারি",
+    kn: "ಮಧ್ಯಮ",
+    ml: "മിതമായത്",
+    pa: "ਦਰਮਿਆਨਾ",
+  },
+  "Multi-Stage": {
+    en: "Multi-Stage",
+    hi: "बहु-चरणीय",
+    mr: "बहु-टप्प्यांचे",
+    gu: "બહુ-તબક્કાવાર",
+    ta: "பல நிலைகள்",
+    te: "బహుళ-దశల",
+    bn: "বহু-পর্যায়",
+    kn: "ಬಹು-ಹಂತದ",
+    ml: "ബഹുഘട്ടങ്ങൾ",
+    pa: "ਬਹੁ-ਪੜਾਵੀ",
+  },
+};
 
 export function CommonServices({
   currentLang = "en",
@@ -28,23 +216,13 @@ export function CommonServices({
 }: CommonServicesProps) {
   const [activeCategory, setActiveCategory] = useState<CivicServiceCategory | "All">("All");
 
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  const t = getTranslations(currentLang);
 
-  const categories: { label: string; value: CivicServiceCategory | "All"; emoji: string }[] = [
-    { label: t.allCategories, value: "All", emoji: "✨" },
-    { label: "Aadhaar & Identity", value: "Aadhaar & Identity", emoji: "🪪" },
-    { label: "Tax & Business", value: "Tax & Business", emoji: "💼" },
-    { label: "Transport (DL & RC)", value: "Transport", emoji: "🚗" },
-    { label: "Passport & Travel", value: "Passport & Travel", emoji: "✈️" },
-    { label: "Voter Services", value: "Voter Services", emoji: "🗳️" },
-    { label: "Certificates & Documents", value: "Certificates & Documents", emoji: "📜" },
-    { label: "Schemes & Benefits", value: "Government Schemes & Benefits", emoji: "🏛️" },
-    { label: "Education & Scholarships", value: "Education", emoji: "🎓" },
-    { label: "Maharashtra / State Services", value: "Maharashtra / State Services", emoji: "🚩" },
-    { label: "Local Civic & Municipal", value: "Local Civic Services", emoji: "🏙️" },
-  ];
+  const categories = CATEGORY_LIST.map((c) => ({
+    ...c,
+    label: CATEGORY_NAMES[c.value]?.[currentLang] || CATEGORY_NAMES[c.value]?.en || c.value,
+  }));
 
-  // Filter procedures by category and by state applicability if relevant
   const filteredProcedures = procedures.filter((p) => {
     const matchesCategory = activeCategory === "All" || p.category === activeCategory;
     const matchesState =
@@ -97,7 +275,7 @@ export function CommonServices({
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div className="max-w-3xl">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200">
-              Verified Government Procedures
+              {t.verifiedGovBadge || "Verified Government Procedures"}
             </span>
             <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               {t.commonServicesTitle}
@@ -108,11 +286,13 @@ export function CommonServices({
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <ShieldCheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Directing to official .gov.in / .nic.in portals</span>
+            <span>
+              {t.badgeOfficialVerification || "Directing to official .gov.in / .nic.in portals"}
+            </span>
           </div>
         </div>
 
-        {/* Category Filter Tabs (10 Indian Categories) */}
+        {/* Category Filter Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
           {categories.map((cat) => (
             <button
@@ -132,106 +312,104 @@ export function CommonServices({
 
         {/* Procedures Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProcedures.map((proc) => (
-            <div
-              key={proc.id}
-              onClick={() => onSelectProcedure(proc)}
-              className="group bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col justify-between hover:shadow-xl hover:shadow-slate-200/70 hover:border-blue-400 hover:-translate-y-1 transition-all duration-200 cursor-pointer relative"
-            >
-              <div>
-                {/* Badges Header */}
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span
-                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${getCategoryColor(
-                      proc.category
-                    )}`}
-                  >
-                    {proc.category}
-                  </span>
-                  <span
-                    className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${getDifficultyBadge(
-                      proc.difficulty
-                    )}`}
-                  >
-                    {proc.difficulty}
-                  </span>
+          {filteredProcedures.map((proc) => {
+            const sTrans = SERVICE_TRANSLATIONS[proc.id];
+            const procTitle = sTrans?.title ? getLocalizedText(sTrans.title, currentLang) : proc.title;
+            const procDesc = sTrans?.shortDescription ? getLocalizedText(sTrans.shortDescription, currentLang) : proc.shortDescription;
+            const procDept = sTrans?.department ? getLocalizedText(sTrans.department, currentLang) : proc.department;
+
+            return (
+              <div
+                key={proc.id}
+                onClick={() => onSelectProcedure(proc)}
+                className="group bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col justify-between hover:shadow-xl hover:shadow-slate-200/70 hover:border-blue-400 hover:-translate-y-1 transition-all duration-200 cursor-pointer relative"
+              >
+                <div>
+                  {/* Badges Header */}
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <span
+                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${getCategoryColor(
+                        proc.category
+                      )}`}
+                    >
+                      {CATEGORY_NAMES[proc.category]?.[currentLang] || proc.category}
+                    </span>
+                    <span
+                      className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${getDifficultyBadge(
+                        proc.difficulty
+                      )}`}
+                    >
+                      {DIFFICULTY_MAP[proc.difficulty]?.[currentLang] || proc.difficulty}
+                    </span>
+                  </div>
+
+                  {/* Procedure Title */}
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-1 mb-2">
+                    {procTitle}
+                  </h3>
+
+                  {/* Short Description */}
+                  <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 mb-4">
+                    {procDesc}
+                  </p>
+
+                  {/* Authority / Ministry info */}
+                  <div className="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 mb-4">
+                    <span className="font-bold text-slate-800 block mb-0.5">
+                      {t.authorityLabel || "Competent Authority:"}
+                    </span>
+                    <span className="truncate block text-slate-600">{procDept}</span>
+                  </div>
                 </div>
 
-                {/* Procedure Title */}
-                <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-1 mb-2">
-                  {proc.title}
-                </h3>
+                {/* Procedure Key Metrics */}
+                <div className="pt-4 border-t border-slate-100 space-y-3">
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 mb-0.5">
+                        <ClockIcon className="w-3 h-3 text-slate-400" />
+                        <span>{t.estimatedTime || "Time"}</span>
+                      </div>
+                      <span className="text-[11px] font-bold text-slate-900 line-clamp-1">
+                        {proc.estimatedTime.split("(")[0]}
+                      </span>
+                    </div>
 
-                {/* Short Description */}
-                <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 mb-4">
-                  {proc.shortDescription}
-                </p>
+                    <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 mb-0.5">
+                        <DollarSignIcon className="w-4 h-4 text-emerald-600" />
+                        <span>{t.expectedOfficialFee || "Fee"}</span>
+                      </div>
+                      <span className="text-[11px] font-bold text-emerald-700 line-clamp-1">
+                        {proc.estimatedFee.split("(")[0]}
+                      </span>
+                    </div>
 
-                {/* Authority / Ministry info */}
-                <div className="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 mb-4">
-                  <span className="font-bold text-slate-800 block mb-0.5">Competent Authority:</span>
-                  <span className="truncate block text-slate-600">{proc.department}</span>
+                    <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 mb-0.5">
+                        <DocumentCheckIcon className="w-3 h-3 text-blue-600" />
+                        <span>{t.requiredDocuments || "Docs"}</span>
+                      </div>
+                      <span className="text-[11px] font-bold text-slate-800">
+                        {proc.requiredDocuments.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Official Portal indicator & Action */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] text-slate-500 font-medium truncate max-w-[170px]">
+                      🌐 {proc.portalDomainName}
+                    </span>
+                    <div className="flex items-center gap-1 text-xs font-bold text-blue-700 group-hover:underline">
+                      <span>{t.selectThisService || "View Roadmap"}</span>
+                      <ArrowRightIcon className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Procedure Key Metrics */}
-              <div className="pt-4 border-t border-slate-100 space-y-3">
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 mb-0.5">
-                      <ClockIcon className="w-3 h-3 text-slate-400" />
-                      <span>Time</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-900 line-clamp-1">
-                      {proc.estimatedTime.split("(")[0]}
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 mb-0.5">
-                      <DollarSignIcon className="w-3 h-3 text-emerald-600" />
-                      <span>Gov Fee</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-emerald-700 line-clamp-1">
-                      {proc.estimatedFee.split("(")[0]}
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-50/80 p-2 rounded-lg border border-slate-100">
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 mb-0.5">
-                      <DocumentCheckIcon className="w-3 h-3 text-blue-600" />
-                      <span>Docs</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-800">
-                      {proc.requiredDocuments.length} Required
-                    </span>
-                  </div>
-                </div>
-
-                {/* Official Portal indicator & Action */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-slate-500 font-medium truncate max-w-[170px]">
-                    🌐 {proc.portalDomainName}
-                  </span>
-                  <div className="flex items-center gap-1 text-xs font-bold text-blue-700 group-hover:underline">
-                    <span>View Roadmap</span>
-                    <ArrowRightIcon className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom Helper Note */}
-        <div className="mt-12 text-center bg-white p-6 rounded-2xl border border-slate-200">
-          <p className="text-xs text-slate-600">
-            Looking for a specific Maharashtra revenue service or Central government scheme not listed above?{" "}
-            <a href="#search-section" className="text-blue-700 font-bold hover:underline">
-              Type your task into the natural-language search bar above
-            </a>{" "}
-            to explore our complete Indian civic directory.
-          </p>
+            );
+          })}
         </div>
       </div>
     </section>

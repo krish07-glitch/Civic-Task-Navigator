@@ -2,49 +2,350 @@
 
 import React, { useState } from "react";
 import { ChevronDownIcon } from "./Icons";
+import { SupportedLanguage } from "@/types/civic";
 
-export function FaqSection() {
+interface FaqItem {
+  q: string;
+  a: string;
+}
+
+interface FaqData {
+  badge: string;
+  title: string;
+  subtitle: string;
+  faqs: FaqItem[];
+}
+
+const FAQ_DATA: Record<SupportedLanguage, FaqData> = {
+  en: {
+    badge: "Frequently Asked Questions",
+    title: "Common questions about Indian government procedures",
+    subtitle: "Clear answers to help you navigate public services safely and efficiently.",
+    faqs: [
+      {
+        q: "Is Civic Task Navigator an official government portal?",
+        a: "No. Civic Task Navigator is an independent, open-access public interest technology platform. We do not issue Aadhaar cards, driving licences, or caste certificates. Our purpose is to demystify complex government procedures, provide step-by-step roadmaps, document checklists, and direct you safely to verified official Indian government portals ending in .gov.in or .nic.in.",
+      },
+      {
+        q: "Do I pay government fees on this website?",
+        a: "Never. Civic Task Navigator is 100% free for citizens and will NEVER ask for your UPI PIN, debit card, or net banking credentials. Official statutory fees (such as ₹50 for Aadhaar address update or ₹1,500 for an Indian Passport) are paid exclusively on official government gateways (e.g. BharatKosh, SBI ePay, or Aaple Sarkar payment gateway).",
+      },
+      {
+        q: "How can I ensure that a government website is genuine and not a scam?",
+        a: "Always check the web address (URL) in your browser address bar. Authentic Indian government portals strictly end with .gov.in or .nic.in (for example: uidai.gov.in, parivahan.gov.in, passportindia.gov.in, incometax.gov.in). Avoid private websites ending in .com, .org, or .net that charge 'consulting fees' for free public services like Udyam MSME registration.",
+      },
+      {
+        q: "How does the Maharashtra Right to Public Services (RTS / Aaple Sarkar) work?",
+        a: "Under the Maharashtra Right to Public Services Act, 2015, over 500 state government services (such as Income Certificates, Domicile Certificates, Caste Certificates, Non-Creamy Layer certificates, and 7/12 land extracts) are legally guaranteed to be delivered within a defined statutory timeline (usually 7 to 15 working days) via the Aaple Sarkar portal.",
+      },
+      {
+        q: "What should I do if my mobile number is not linked to Aadhaar?",
+        a: "Many contactless government services (such as online Learner's Licence test, Udyam registration, or online ITR e-verification) require an active mobile number linked with Aadhaar to receive OTPs. If your number is not linked, you can visit any authorized Bank, Post Office, or Aadhaar Seva Kendra in person once for biometric mobile updating.",
+      },
+      {
+        q: "Can I print or save the document checklist before going to the government office?",
+        a: "Yes! Every procedure roadmap includes an interactive document pre-check where you can check off documents you have prepared, along with an instant 'Print Procedure Checklist' feature so you have a clean physical sheet ready before visiting the RTO, PSK, or Tehsildar office.",
+      },
+    ],
+  },
+  hi: {
+    badge: "अक्सर पूछे जाने वाले प्रश्न",
+    title: "भारतीय सरकारी प्रक्रियाओं के बारे में सामान्य प्रश्न",
+    subtitle: "सार्वजनिक सेवाओं को सुरक्षित और सुगमता से नेविगेट करने के लिए स्पष्ट उत्तर।",
+    faqs: [
+      {
+        q: "क्या सिविक टास्क नेविगेटर एक आधिकारिक सरकारी पोर्टल है?",
+        a: "नहीं। सिविक टास्क नेविगेटर एक स्वतंत्र जनहित तकनीकी मंच है। हम आधार कार्ड, ड्राइविंग लाइसेंस या जाति प्रमाण पत्र जारी नहीं करते हैं। हमारा उद्देश्य जटिल सरकारी प्रक्रियाओं को सरल बनाना, चरणबद्ध रोडमैप प्रदान करना और आपको .gov.in या .nic.in पर समाप्त होने वाले प्रमाणित आधिकारिक सरकारी पोर्टलों पर सुरक्षित रूप से निर्देशित करना है।",
+      },
+      {
+        q: "क्या मुझे इस वेबसाइट पर कोई सरकारी शुल्क देना होगा?",
+        a: "कभी नहीं। सिविक टास्क नेविगेटर नागरिकों के लिए 100% निःशुल्क है और कभी भी आपके UPI पिन, डेबिट कार्ड या नेट बैंकिंग क्रेडेंशियल नहीं मांगेगा। आधिकारिक वैधानिक शुल्क (जैसे आधार पता अपडेट के लिए ₹50 या पासपोर्ट के लिए ₹1,500) केवल आधिकारिक सरकारी भुगतान गेटवे (जैसे भारतकोश, SBI ePay, या आपले सरकार पेमेंट गेटवे) पर ही दिए जाते हैं।",
+      },
+      {
+        q: "मैं यह कैसे सुनिश्चित करूं कि कोई सरकारी वेबसाइट असली है, फर्जी नहीं?",
+        a: "हमेशा अपने ब्राउज़र एड्रेस बार में वेबसाइट का पता (URL) जांचें। असली भारतीय सरकारी पोर्टल अनिवार्य रूप से .gov.in या .nic.in पर समाप्त होते हैं (उदाहरण के लिए: uidai.gov.in, parivahan.gov.in, passportindia.gov.in, incometax.gov.in)। .com, .org, या .net पर समाप्त होने वाली निजी वेबसाइटों से बचें जो निःशुल्क सार्वजनिक सेवाओं के लिए 'परामर्श शुल्क' वसूलती हैं।",
+      },
+      {
+        q: "महाराष्ट्र लोक सेवा गारंटी (RTS / आपले सरकार) कैसे कार्य करती है?",
+        a: "महाराष्ट्र लोक सेवा अधिकार अधिनियम, 2015 के तहत 500 से अधिक राज्य सरकारी सेवाएं (जैसे आय प्रमाण पत्र, अधिवास प्रमाण पत्र, जाति प्रमाण पत्र, नॉन-क्रीमी लेयर और 7/12 उतारा) आपले सरकार पोर्टल के माध्यम से एक निश्चित कानूनी समय सीमा (आमतौर पर 7 से 15 कार्य दिवस) में प्रदान करने की कानूनी गारंटी है।",
+      },
+      {
+        q: "यदि मेरा मोबाइल नंबर आधार से लिंक नहीं है तो मुझे क्या करना चाहिए?",
+        a: "कई ऑनलाइन संपर्क रहित सेवाओं (जैसे ऑनलाइन लर्नर लाइसेंस टेस्ट, उद्यम पंजीकरण या आयकर ई-सत्यापन) के लिए OTP प्राप्त करने हेतु आधार से जुड़ा सक्रिय मोबाइल नंबर आवश्यक है। यदि आपका नंबर लिंक नहीं है, तो आप बायोमेट्रिक मोबाइल अपडेट के लिए किसी भी अधिकृत बैंक, डाकघर या आधार सेवा केंद्र पर जा सकते हैं।",
+      },
+      {
+        q: "क्या मैं सरकारी कार्यालय जाने से पहले दस्तावेज़ चेकलिस्ट प्रिंट या सहेज सकता हूँ?",
+        a: "हाँ! प्रत्येक प्रक्रिया रोडमैप में एक इंटरैक्टिव दस्तावेज़ चेकलिस्ट शामिल है जहाँ आप अपने तैयार दस्तावेजों को चेक कर सकते हैं, साथ ही 'प्रिंट' विकल्प भी उपलब्ध है जिससे आप कार्यालय जाने से पहले एक प्रिंटेड शीट तैयार रख सकें।",
+      },
+    ],
+  },
+  mr: {
+    badge: "वारंवार विचारले जाणारे प्रश्न",
+    title: "शासकीय प्रक्रियांविषयी सामान्य प्रश्न",
+    subtitle: "सरकारी सेवा सुरक्षितपणे समजून घेण्यासाठी स्पष्ट उत्तरे.",
+    faqs: [
+      {
+        q: "सिविक टास्क नेव्हिगेटर हे अधिकृत सरकारी पोर्टल आहे का?",
+        a: "नाही. सिविक टास्क नेव्हिगेटर हे एक स्वतंत्र, मोफत नागरिक सहाय्य व्यासपीठ आहे. आम्ही कोणतेही दाखले जारी करत नाही. आमचा उद्देश सरकारी प्रक्रिया सोप्या भाषेत समजावून सांगणे आणि नागरिकांना थेट .gov.in किंवा .nic.in या अधिकृत संकेतस्थळांवर नेणे हा आहे.",
+      },
+      {
+        q: "या संकेतस्थळावर कोणतेही शासकीय शुल्क भरावे लागते का?",
+        a: "कधीही नाही. सिविक टास्क नेव्हिगेटर नागरिकांसाठी १००% मोफत आहे आणि कधीही तुमचे बँक तपशील मागत नाही. शासकीय शुल्क केवळ अधिकृत सरकारी पेमेंट गेटवेवरच भरावे लागते.",
+      },
+      {
+        q: "सरकारी संकेतस्थळ खरे आहे की बनावट हे कसे ओळखावे?",
+        a: "नेहमी ब्राउझरमधील वेब पत्ता (URL) तपासा. अस्सल सरकारी संकेतस्थळे केवळ .gov.in किंवा .nic.in वर संपतात. .com किंवा .org असलेल्या खाजगी वेबसाइट्सपासून सावध राहा.",
+      },
+      {
+        q: "महाराष्ट्र लोकसेवा हक्क (RTS / आपले सरकार) कसे कार्य करते?",
+        a: "महाराष्ट्र लोकसेवा हक्क अधिनियम, २०१५ अंतर्गत ५०० हून अधिक सेवा (उदा. उत्पन्न दाखला, अधिवास, जात प्रमाणपत्र) विहित मुदतीत देण्याची कायदेशीर हमी आहे.",
+      },
+      {
+        q: "माझा मोबाईल क्रमांक आधारशी जोडलेला नसेल तर काय करावे?",
+        a: "ऑनलाइन सेवांसाठी आधारशी लिंक असलेला मोबाईल नंबर आवश्यक आहे. लिंक नसल्यास अधिकृत आधार सेवा केंद्रात जाऊन बायोमेट्रिक अपडेट करून घ्या.",
+      },
+      {
+        q: "मी कार्यालयात जाण्यापूर्वी कागदपत्रांची चेकलिस्ट प्रिंट करू शकतो का?",
+        a: "होय! प्रत्येक प्रक्रियेमध्ये इंटरॅक्टिव्ह चेकलिस्ट आणि प्रिंट पर्याय उपलब्ध आहे, ज्यामुळे कार्यालयात जाण्यापूर्वी तुम्ही संपूर्ण तयारी करू शकता.",
+      },
+    ],
+  },
+  gu: {
+    badge: "વારંવાર પૂછાતા પ્રશ્નો",
+    title: "સરકારી પ્રક્રિયાઓ વિશે સામાન્ય પ્રશ્નો",
+    subtitle: "સરકારી સેવાઓને સુરક્ષિત રીતે સમજવા માટે સ્પષ્ટ જવાબો.",
+    faqs: [
+      {
+        q: "શું સિવિક ટાસ્ક નેવિગેટર સત્તાવાર સરકારી પોર્ટલ છે?",
+        a: "ના. સિવિક ટાસ્ક નેવિગેટર એક સ્વતંત્ર નાગરિક માર્ગદર્શિકા છે. અમે કોઈ દસ્તાવેજ ઇશ્યૂ કરતા નથી. અમારો હેતુ પ્રક્રિયાઓ સરળ બનાવવાનો અને .gov.in અથવા .nic.in વાળી સત્તાવાર સાઇટ્સ પર માર્ગદર્શન આપવાનો છે.",
+      },
+      {
+        q: "શું આ વેબસાઇટ પર કોઈ ફી ચૂકવવાની હોય છે?",
+        a: "ક્યારેય નહીં. આ પ્લેટફોર્મ ૧૦૦% મફત છે. સત્તાવાર ફી ફક્ત સરકારી ગેટવે પર જ ચૂકવવામાં આવે છે.",
+      },
+      {
+        q: "સરકારી વેબસાઇટ અસલી છે કે નકલી તે કેવી રીતે જાણવું?",
+        a: "હંમેશા URL તપાસો. અસલી સરકારી પોર્ટલ .gov.in અથવા .nic.in પર સમાપ્ત થાય છે. .com કે .org સાઇટ્સથી સાવચેત રહો.",
+      },
+      {
+        q: "સેવા અધિકાર કાયદો કેવી રીતે કામ કરે છે?",
+        a: "આ કાયદા હેઠળ આવક પ્રમાણપત્ર, જાતિ પ્રમાણપત્ર જેવી સેવાઓ નિશ્ચિત સમયમર્યાદામાં મેળવવાની કાનૂની ગેરંટી હોય છે.",
+      },
+      {
+        q: "જો મોબાઈલ નંબર આધાર સાથે લિંક ન હોય તો શું કરવું?",
+        a: "ઓનલાઇન સેવાઓના OTP માટે આધાર સાથે મોબાઈલ લિંક હોવો જરૂરી છે. જો લિંક ન હોય તો આધાર સેવા કેન્દ્રની મુલાકાત લો.",
+      },
+      {
+        q: "શું હું દસ્તાવેજ ચેકલિસ્ટ પ્રિન્ટ કરી શકું છું?",
+        a: "હા! તમે કચેરીએ જતા પહેલાં તમામ જરૂરી કાગળોની ચેકલિસ્ટ સરળતાથી પ્રિન્ટ કરી શકો છો.",
+      },
+    ],
+  },
+  ta: {
+    badge: "அடிக்கடி கேட்கப்படும் கேள்விகள்",
+    title: "அரசு நடைமுறைகள் பற்றிய பொதுவான கேள்விகள்",
+    subtitle: "பொதுச் சேவைகளைப் பாதுகாப்பாக அணுக தெளிவான பதில்கள்.",
+    faqs: [
+      {
+        q: "சிவிக் டாஸ்க் நேவிகேட்டர் அதிகாரப்பூர்வ அரசு தளமா?",
+        a: "இல்லை. இது ஒரு சுதந்திரமான குடிமக்கள் வழிகாட்டி தளம். அரசு சான்றிதழ்களை நாங்கள் வழங்குவதில்லை. நடைமுறைகளை விளக்கி, அதிகாரப்பூர்வ .gov.in தளங்களுக்கு வழிகாட்டுவதே எங்கள் நோக்கம்.",
+      },
+      {
+        q: "இந்த இணையதளத்தில் அரசு கட்டணம் செலுத்த வேண்டுமா?",
+        a: "ஒருபோதும் இல்லை. இது முற்றிலும் இலவசம். அரசு கட்டணங்கள் அதிகாரப்பூர்வ தளங்களில் மட்டுமே செலுத்தப்பட வேண்டும்.",
+      },
+      {
+        q: "அரசு இணையதளத்தின் நம்பகத்தன்மையை எவ்வாறு அறிவது?",
+        a: "முகவரிப் பட்டியில் .gov.in அல்லது .nic.in உள்ளதா என்பதை எப்போதும் சரிபார்க்கவும். போலி தளங்களை தவிர்க்கவும்.",
+      },
+      {
+        q: "சேவை பெறும் உரிமைச் சட்டம் எவ்வாறு செயல்படுகிறது?",
+        a: "இச்சட்டத்தின் கீழ் வருமானச் சான்றிதழ், இருப்பிடச் சான்றிதழ் போன்ற சேவைகள் குறிப்பிட்ட காலத்திற்குள் வழங்கப்பட வேண்டும் என்பது சட்டப்பூர்வ உத்தரவாதம்.",
+      },
+      {
+        q: "ஆதாருடன் மொபைல் எண் இணைக்கப்படவில்லை என்றால் என்ன செய்வது?",
+        a: "ஆன்லைன் OTP சேவைகளுக்கு மொபைல் எண் அவசியம். இணைக்கப்படவில்லை என்றால் ஆதார் சேவை மையத்திற்குச் சென்று புதுப்பிக்கவும்.",
+      },
+      {
+        q: "ஆவணப் பட்டியலை அச்சிட முடியுமா?",
+        a: "ஆம்! அலுவலகம் செல்வதற்கு முன் சரிபார்க்க தேவையான ஆவணப் பட்டியலை அச்சிட்டுக் கொள்ளலாம்.",
+      },
+    ],
+  },
+  te: {
+    badge: "తరచుగా అడిగే ప్రశ్నలు",
+    title: "ప్రభుత్వ ప్రక్రియల గురించి సాధారణ ప్రశ్నలు",
+    subtitle: "ప్రజా సేవలను సులభంగా అర్థం చేసుకోవడానికి స్పష్టమైన సమాధానాలు.",
+    faqs: [
+      {
+        q: "సివిక్ టాస్క్ నేవిగేటర్ అధికారిక ప్రభుత్వ పోర్టలా?",
+        a: "కాదు. ఇది ఒక స్వతంత్ర పౌర సమాచార వేదిక. మేము ఎలాంటి పత్రాలను జారీ చేయము. అధికారిక .gov.in లేదా .nic.in సైట్‌లకు సరైన మార్గదర్శనం చేయడమే మా లక్ష్యం.",
+      },
+      {
+        q: "ఈ వెబ్‌సైట్‌లో ప్రభుత్వ రుసుము చెల్లించాలా?",
+        a: "ఎప్పటికీ లేదు. ఇది 100% ఉచితం. అధికారిక రుసుములు కేవలం ప్రభుత్వ గేట్‌వేలలో మాత్రమే చెల్లించాలి.",
+      },
+      {
+        q: "ప్రభుత్వ వెబ్‌సైట్ అసలైనదా కాదా అని ఎలా తెలుసుకోవాలి?",
+        a: "ఎల్లప్పుడూ URL చిరునామాను గమనించండి. అసలైన సైట్‌లు .gov.in లేదా .nic.in తో ముగుస్తాయి.",
+      },
+      {
+        q: "పౌర సేవల హక్కు చట్టం ఎలా పనిచేస్తుంది?",
+        a: "ఈ చట్టం కింద నిర్దిష్ట కాలపరిమితిలో ప్రభుత్వ ధృవీకరణ పత్రాలను అందించే చట్టపరమైన హామీ ఉంటుంది.",
+      },
+      {
+        q: "మొబైల్ నంబర్ ఆధార్‌తో లింక్ కాకపోతే ఏమి చేయాలి?",
+        a: "ఆన్‌లైన్ సేవల OTP కోసం ఆధార్‌తో మొబైల్ లింక్ అవసరం. లేకుంటే ఆధార్ సేవా కేంద్రాన్ని సంప్రదించండి.",
+      },
+      {
+        q: "పత్రాల జాబితాను ప్రింట్ తీసుకోవచ్చా?",
+        a: "అవును! కార్యాలయానికి వెళ్లే ముందు అవసరమైన పత్రాల చెక్‌లిస్ట్‌ను సులభంగా ప్రింట్ చేసుకోవచ్చు.",
+      },
+    ],
+  },
+  bn: {
+    badge: "সাধারণ প্রশ্নোত্তর",
+    title: "সরকারি প্রক্রিয়া সম্পর্কিত সাধারণ প্রশ্ন",
+    subtitle: "সরকারি পরিষেবা নিরাপদে সম্পন্ন করতে স্পষ্ট উত্তর।",
+    faqs: [
+      {
+        q: "সিভিক টাস্ক নেভিগেটর কি কোনো অফিসিয়াল সরকারি পোর্টাল?",
+        a: "না। এটি একটি স্বাধীন নাগরিক তথ্য প্ল্যাটফর্ম। আমরা কোনো সরকারি শংসাপত্র জারি করি না। আমাদের উদ্দেশ্য প্রক্রিয়া সহজ করা এবং .gov.in পোর্টালে নির্দেশ করা।",
+      },
+      {
+        q: "এই ওয়েবসাইটে কি সরকারি ফি দিতে হবে?",
+        a: "কখনোই নয়। এটি সম্পূর্ণ বিনামূল্যে। সমস্ত সরকারি ফি কেবল অফিসিয়াল সরকারি পেমেন্ট গেটওয়েতে প্রদেয়।",
+      },
+      {
+        q: "সরকারি ওয়েবসাইট আসল কিনা তা কীভাবে নিশ্চিত করবেন?",
+        a: "সর্বদা ব্রাউজারের URL লক্ষ্য করুন। আসল সরকারি ওয়েবসাইট .gov.in বা .nic.in দিয়ে শেষ হয়।",
+      },
+      {
+        q: "জনপরিষেবা অধিকার আইন কীভাবে কাজ করে?",
+        a: "এই আইনের অধীনে নাগরিকরা নির্ধারিত সময়সীমার মধ্যে শংসাপত্র পাওয়ার আইনি নিশ্চয়তা পান।",
+      },
+      {
+        q: "মোবাইল নম্বর আধার লিঙ্ক না থাকলে কী করবেন?",
+        a: "অনলাইন OTP সুবিধার জন্য আধার লিঙ্কযুক্ত মোবাইল থাকা আবশ্যক। নিকটস্থ আধার কেন্দ্রে গিয়ে আপডেট করুন।",
+      },
+      {
+        q: "নথির তালিকা কি প্রিন্ট করা যাবে?",
+        a: "হ্যাঁ! সরকারি অফিসে যাওয়ার আগে প্রয়োজনীয় নথির চেকলিস্ট প্রিন্ট করে প্রস্তুত থাকতে পারবেন।",
+      },
+    ],
+  },
+  kn: {
+    badge: "ಪದೇ ಪದೇ ಕೇಳಲಾಗುವ ಪ್ರಶ್ನೆಗಳು",
+    title: "ಸರ್ಕಾರಿ ಪ್ರಕ್ರಿಯೆಗಳ ಕುರಿತು ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳು",
+    subtitle: "ಸರ್ಕಾರಿ ಸೇವೆಗಳನ್ನು ಸುಲಭವಾಗಿ ಪಡೆಯಲು ಸ್ಪಷ್ಟ ಉತ್ತರಗಳು.",
+    faqs: [
+      {
+        q: "ಸಿವಿಕ್ ಟಾಸ್ಕ್ ನ್ಯಾವಿಗೇಟರ್ ಅಧಿಕೃತ ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್ ಆಗಿದೆಯೇ?",
+        a: "ಇಲ್ಲ. ಇದು ಒಂದು ಸ್ವತಂತ್ರ ನಾಗರಿಕ ಮಾರ್ಗದರ್ಶಿ ವೇದಿಕೆ. ಅಧಿಕೃತ .gov.in ಅಥವಾ .nic.in ಪೋರ್ಟಲ್‌ಗಳಿಗೆ ಸರಿಯಾದ ಮಾರ್ಗದರ್ಶನ ನೀಡುವುದು ನಮ್ಮ ಉದ್ದೇಶ.",
+      },
+      {
+        q: "ಈ ವೆಬ್‌ಸೈಟ್‌ನಲ್ಲಿ ಶುಲ್ಕ ಪಾವತಿಸಬೇಕೇ?",
+        a: "ಖಂಡಿತ ಇಲ್ಲ. ಇದು ಸಂಪೂರ್ಣ ಉಚಿತ. ಸರ್ಕಾರಿ ಶುಲ್ಕಗಳನ್ನು ಅಧಿಕೃತ ಪೋರ್ಟಲ್‌ಗಳಲ್ಲಿ ಮಾತ್ರ ಪಾವತಿಸಬೇಕು.",
+      },
+      {
+        q: "ಸರ್ಕಾರಿ ವೆಬ್‌ಸೈಟ್ ಅಧಿಕೃತವೇ ಎಂದು ತಿಳಿಯುವುದು ಹೇಗೆ?",
+        a: "ವೆಬ್ ವಿಳಾಸವು .gov.in ಅಥವಾ .nic.in ನಿಂದ ಕೊನೆಗೊಳ್ಳುವುದನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+      },
+      {
+        q: "ಸೇವಾ ಹಕ್ಕು ಕಾಯಿದೆ ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ?",
+        a: "ಈ ಕಾಯಿದೆಯಡಿ ನಿಗದಿತ ಅವಧಿಯೊಳಗೆ ಸರ್ಕಾರಿ ಸೇವೆಗಳನ್ನು ಪಡೆಯುವ ಕಾನೂನುಬದ್ಧ ಹಕ್ಕು ನಾಗರಿಕರಿಗೆ ಇರುತ್ತದೆ.",
+      },
+      {
+        q: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಆಧಾರ್‌ಗೆ ಲಿಂಕ್ ಆಗಿಲ್ಲದಿದ್ದರೆ ಏನು ಮಾಡಬೇಕು?",
+        a: "ಆನ್‌ಲೈನ್ OTP ಸೇವೆಗಳಿಗೆ ಮೊಬೈಲ್ ಲಿಂಕ್ ಕಡ್ಡಾಯ. ಇಲ್ಲದಿದ್ದರೆ ಆಧಾರ್ ಕೇಂದ್ರಕ್ಕೆ ಭೇಟಿ ನೀಡಿ.",
+      },
+      {
+        q: "ದಾಖಲೆಗಳ ಪಟ್ಟಿಯನ್ನು ಪ್ರಿಂಟ್ ಮಾಡಬಹುದೇ?",
+        a: "ಹೌದು! ಕಚೇರಿಗೆ ಹೋಗುವ ಮುನ್ನ ಅಗತ್ಯ ದಾಖಲೆಗಳ ಪಟ್ಟಿಯನ್ನು ಪ್ರಿಂಟ್ ಮಾಡಿಕೊಳ್ಳಬಹುದು.",
+      },
+    ],
+  },
+  ml: {
+    badge: "പതിവായി ചോദിക്കുന്ന ചോദ്യങ്ങൾ",
+    title: "സർക്കാർ നടപടിക്രമങ്ങളെക്കുറിച്ചുള്ള സാധാരണ ചോദ്യങ്ങൾ",
+    subtitle: "സർക്കാർ സേവനങ്ങൾ സുരക്ഷിതമായി മനസ്സിലാക്കാൻ വ്യക്തമായ ഉത്തരങ്ങൾ.",
+    faqs: [
+      {
+        q: "സിവിക് ടാസ്ക് നാവിഗേറ്റർ ഒരു ഔദ്യോഗിക സർക്കാർ പോർട്ടലാണോ?",
+        a: "അല്ല. ഇത് ഒരു സ്വതന്ത്ര പൗര വിവര പ്ലാറ്റ്‌ഫോമാണ്. ഔദ്യോഗിക .gov.in സൈറ്റുകളിലേക്ക് പൗരന്മാരെ സുരക്ഷിതമായി നയിക്കുകയാണ് ഞങ്ങളുടെ ലക്ഷ്യം.",
+      },
+      {
+        q: "ഈ വെബ്സൈറ്റിൽ സർക്കാർ ഫീസ് നൽകേണ്ടതുണ്ടോ?",
+        a: "ഒരിക്കലുമില്ല. ഇത് 100% സൗജന്യമാണ്. ഔദ്യോഗിക ഫീസ് സർക്കാർ പേയ്‌മെന്റ് ഗേറ്റ്‌വേകളിൽ മാത്രമേ അടയ്ക്കേണ്ടതുള്ളൂ.",
+      },
+      {
+        q: "സർക്കാർ വെബ്സൈറ്റ് യഥാർത്ഥമാണെന്ന് എങ്ങനെ ഉറപ്പാക്കാം?",
+        a: "വെബ് വിലാസം .gov.in അല്ലെങ്കിൽ .nic.in എന്നതിൽ അവസാനിക്കുന്നുണ്ടോ എന്ന് പരിശോധിക്കുക.",
+      },
+      {
+        q: "സേവാവകാശ നിയമം എങ്ങനെ പ്രവർത്തിക്കുന്നു?",
+        a: "ഈ നിയമപ്രകാരം നിശ്ചിത സമയപരിധിക്കുള്ളിൽ സർക്കാർ സേവനങ്ങൾ ലഭ്യമാക്കാനുള്ള നിയമപരമായ ഉറപ്പ് ലഭിക്കുന്നു.",
+      },
+      {
+        q: "മൊബൈൽ നമ്പർ ആധാറുമായി ബന്ധിപ്പിച്ചിട്ടില്ലെങ്കിൽ എന്തുചെയ്യണം?",
+        a: "ഓൺലൈൻ OTP സേവനങ്ങൾക്കായി ആധാർ ലിങ്ക് ചെയ്ത മൊബൈൽ ആവശ്യമാണ്. ഇതിനായി ആധാർ കേന്ദ്രം സന്ദർശിക്കുക.",
+      },
+      {
+        q: "രേഖകളുടെ ലിസ്റ്റ് പ്രിന്റ് ചെയ്യാനാകുമോ?",
+        a: "അതെ! ഓഫീസിൽ പോകുന്നതിനുമുമ്പ് ആവശ്യമായ രേഖകളുടെ ചെക്ക്‌ലിസ്റ്റ് പ്രിന്റ് ചെയ്യാവുന്നതാണ്.",
+      },
+    ],
+  },
+  pa: {
+    badge: "ਅਕਸਰ ਪੁੱਛੇ ਜਾਣ ਵਾਲੇ ਸਵਾਲ",
+    title: "ਸਰਕਾਰੀ ਪ੍ਰਕਿਰਿਆਵਾਂ ਬਾਰੇ ਆਮ ਸਵਾਲ",
+    subtitle: "ਸਰਕਾਰੀ ਸੇਵਾਵਾਂ ਨੂੰ ਆਸਾਨੀ ਨਾਲ ਸਮਝਣ ਲਈ ਸਪੱਸ਼ਟ ਜਵਾਬ।",
+    faqs: [
+      {
+        q: "ਕੀ ਸਿਵਿਕ ਟਾਸਕ ਨੈਵੀਗੇਟਰ ਇੱਕ ਅਧਿਕਾਰਤ ਸਰਕਾਰੀ ਪੋਰਟਲ ਹੈ?",
+        a: "ਨਹੀਂ। ਇਹ ਇੱਕ ਸੁਤੰਤਰ ਨਾਗਰਿਕ ਗਾਈਡ ਹੈ। ਸਾਡਾ ਉਦੇਸ਼ ਸਰਕਾਰੀ ਪ੍ਰਕਿਰਿਆਵਾਂ ਨੂੰ ਸਰਲ ਬਣਾਉਣਾ ਅਤੇ .gov.in ਪੋਰਟਲ ਵੱਲ ਸਹੀ ਅਗਵਾਈ ਕਰਨਾ ਹੈ।",
+      },
+      {
+        q: "ਕੀ ਇਸ ਵੈੱਬਸਾਈਟ 'ਤੇ ਸਰਕਾਰੀ ਫੀਸ ਦੇਣੀ ਪਵੇਗੀ?",
+        a: "ਬਿਲਕੁਲ ਨਹੀਂ। ਇਹ ਸੇਵਾ 100% ਮੁਫ਼ਤ ਹੈ। ਸਰਕਾਰੀ ਫੀਸਾਂ ਸਿਰਫ਼ ਸਰਕਾਰੀ ਪੋਰਟਲਾਂ 'ਤੇ ਹੀ ਅਦਾ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ।",
+      },
+      {
+        q: "ਅਧਿਕਾਰਤ ਸਰਕਾਰੀ ਵੈੱਬਸਾਈਟ ਦੀ ਪਛਾਣ ਕਿਵੇਂ ਕਰੀਏ?",
+        a: "ਹਮੇਸ਼ਾ ਵੈੱਬ ਪਤਾ ਚੈੱਕ ਕਰੋ। ਅਸਲ ਸਰਕਾਰੀ ਵੈੱਬਸਾਈਟਾਂ .gov.in ਜਾਂ .nic.in ਨਾਲ ਖਤਮ ਹੁੰਦੀਆਂ ਹਨ।",
+      },
+      {
+        q: "ਸੇਵਾ ਅਧਿਕਾਰ ਕਾਨੂੰਨ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ?",
+        a: "ਇਸ ਕਾਨੂੰਨ ਤਹਿਤ ਨਾਗਰਿਕਾਂ ਨੂੰ ਨਿਸ਼ਚਿਤ ਸਮੇਂ ਅੰਦਰ ਸਰਕਾਰੀ ਸੇਵਾਵਾਂ ਪ੍ਰਾਪਤ ਕਰਨ ਦੀ ਕਾਨੂੰਨੀ ਗਾਰੰਟੀ ਮਿਲਦੀ ਹੈ।",
+      },
+      {
+        q: "ਜੇਕਰ ਮੋਬਾਈਲ ਨੰਬਰ ਆਧਾਰ ਨਾਲ ਲਿੰਕ ਨਾ ਹੋਵੇ ਤਾਂ ਕੀ ਕਰੀਏ?",
+        a: "ਆਨਲਾਈਨ OTP ਲਈ ਆਧਾਰ ਨਾਲ ਲਿੰਕ ਮੋਬਾਈਲ ਜ਼ਰੂਰੀ ਹੈ। ਲਿੰਕ ਕਰਵਾਉਣ ਲਈ ਨੇੜਲੇ ਆਧਾਰ ਸੇਵਾ ਕੇਂਦਰ ਜਾਓ।",
+      },
+      {
+        q: "ਕੀ ਦਸਤਾਵੇਜ਼ਾਂ ਦੀ ਸੂਚੀ ਪ੍ਰਿੰਟ ਕੀਤੀ ਜਾ ਸਕਦੀ ਹੈ?",
+        a: "ਹਾਂ! ਦਫ਼ਤਰ ਜਾਣ ਤੋਂ ਪਹਿਲਾਂ ਤੁਸੀਂ ਦਸਤਾਵੇਜ਼ਾਂ ਦੀ ਚੈੱਕਲਿਸਟ ਆਸਾਨੀ ਨਾਲ ਪ੍ਰਿੰਟ ਕਰ ਸਕਦੇ ਹੋ।",
+      },
+    ],
+  },
+};
+
+export function FaqSection({ currentLang = "en" }: { currentLang?: SupportedLanguage }) {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
-
-  const faqs = [
-    {
-      q: "Is Civic Task Navigator an official government portal?",
-      a: "No. Civic Task Navigator is an independent, open-access public interest technology platform. We do not issue Aadhaar cards, driving licences, or caste certificates. Our purpose is to demystify complex government procedures, provide step-by-step roadmaps, document checklists, and direct you safely to verified official Indian government portals ending in .gov.in or .nic.in.",
-    },
-    {
-      q: "Do I pay government fees on this website?",
-      a: "Never. Civic Task Navigator is 100% free for citizens and will NEVER ask for your UPI PIN, debit card, or net banking credentials. Official statutory fees (such as ₹50 for Aadhaar address update or ₹1,500 for an Indian Passport) are paid exclusively on official government gateways (e.g. BharatKosh, SBI ePay, or Aaple Sarkar payment gateway).",
-    },
-    {
-      q: "How can I ensure that a government website is genuine and not a scam?",
-      a: "Always check the web address (URL) in your browser address bar. Authentic Indian government portals strictly end with .gov.in or .nic.in (for example: uidai.gov.in, parivahan.gov.in, passportindia.gov.in, incometax.gov.in). Avoid private websites ending in .com, .org, or .net that charge 'consulting fees' for free public services like Udyam MSME registration.",
-    },
-    {
-      q: "How does the Maharashtra Right to Public Services (RTS / Aaple Sarkar) work?",
-      a: "Under the Maharashtra Right to Public Services Act, 2015, over 500 state government services (such as Income Certificates, Domicile Certificates, Caste Certificates, Non-Creamy Layer certificates, and 7/12 land extracts) are legally guaranteed to be delivered within a defined statutory timeline (usually 7 to 15 working days) via the Aaple Sarkar portal.",
-    },
-    {
-      q: "What should I do if my mobile number is not linked to Aadhaar?",
-      a: "Many contactless government services (such as online Learner's Licence test, Udyam registration, or online ITR e-verification) require an active mobile number linked with Aadhaar to receive OTPs. If your number is not linked, you can visit any authorized Bank, Post Office, or Aadhaar Seva Kendra in person once for biometric mobile updating.",
-    },
-    {
-      q: "Can I print or save the document checklist before going to the government office?",
-      a: "Yes! Every procedure roadmap includes an interactive document pre-check where you can check off documents you have prepared, along with an instant 'Print Procedure Checklist' feature so you have a clean physical sheet ready before visiting the RTO, PSK, or Tehsildar office.",
-    },
-  ];
+  const data = FAQ_DATA[currentLang] || FAQ_DATA.en;
+  const faqs = data.faqs;
 
   return (
     <section id="faq" className="py-20 md:py-24 bg-slate-50 border-b border-slate-200/80">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200">
-            Frequently Asked Questions
+            {data.badge}
           </span>
           <h2 className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight">
-            Common questions about Indian government procedures
+            {data.title}
           </h2>
           <p className="mt-3 text-base text-slate-600">
-            Clear answers to help you navigate public services safely and efficiently.
+            {data.subtitle}
           </p>
         </div>
 
@@ -65,16 +366,14 @@ export function FaqSection() {
                   <span className="text-base font-bold text-slate-900">
                     {faq.q}
                   </span>
-                  <div
-                    className={`w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 bg-blue-50 text-blue-700" : "text-slate-400"
+                  <ChevronDownIcon
+                    className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-blue-700" : ""
                     }`}
-                  >
-                    <ChevronDownIcon className="w-4 h-4" />
-                  </div>
+                  />
                 </button>
                 {isOpen && (
-                  <div className="px-5 sm:px-6 pb-6 pt-1 text-sm text-slate-600 leading-relaxed border-t border-slate-100 animate-in fade-in duration-150">
+                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
                     {faq.a}
                   </div>
                 )}

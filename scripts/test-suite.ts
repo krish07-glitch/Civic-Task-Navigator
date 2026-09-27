@@ -6,6 +6,7 @@ import {
   getLocalizedPortalRegistryStats
 } from '../src/lib/localizedUrls';
 import { GOVERNMENT_SERVICES } from '../src/data/services';
+import { getLocalizedText } from '../src/types/service';
 import { getVoiceRecognitionLang } from '../src/lib/useVoiceSearch';
 
 interface TestCase {
@@ -838,12 +839,12 @@ for (const s of GOVERNMENT_SERVICES) {
       ungroundedDetails = `Service ${s.id} step ${st.stepNumber} missing valid mode`;
       break;
     }
-    if (!st.agencyOrPortal || st.agencyOrPortal.trim() === "") {
+    if (!st.agencyOrPortal || getLocalizedText(st.agencyOrPortal, "en").trim() === "") {
       allStepsGrounded = false;
       ungroundedDetails = `Service ${s.id} step ${st.stepNumber} missing agencyOrPortal`;
       break;
     }
-    if (!st.officialSource || st.officialSource.trim() === "") {
+    if (!st.officialSource || getLocalizedText(st.officialSource, "en").trim() === "") {
       allStepsGrounded = false;
       ungroundedDetails = `Service ${s.id} step ${st.stepNumber} missing officialSource`;
       break;

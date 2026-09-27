@@ -15,7 +15,7 @@ import {
 } from "./Icons";
 import { INDIAN_STATES, EXAMPLE_TASK_QUERIES } from "@/data/civicData";
 import { CivicProcedure, IndianStateId, SupportedLanguage } from "@/types/civic";
-import { TRANSLATIONS } from "@/data/translations";
+import { TRANSLATIONS, getTranslations } from "@/data/translations";
 import { InteractiveParticleBackground } from "./animations/InteractiveParticleBackground";
 import { getLocalizedOfficialUrl } from "@/lib/localizedUrls";
 import { useVoiceSearch, getVoiceRecognitionLang } from "@/lib/useVoiceSearch";
@@ -74,7 +74,7 @@ export function HeroSection({
     };
   }, [isLocationModalOpen]);
 
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  const t = getTranslations(currentLang);
 
   const currentStateObj =
     INDIAN_STATES.find((s) => s.id === selectedState) || INDIAN_STATES[1]; // default Maharashtra
@@ -108,7 +108,7 @@ export function HeroSection({
 
   const handleApplyLocation = () => {
     if (!isSelectionValid) {
-      setDistrictError("Please choose your district or select 'State-wide (All Districts)'");
+      setDistrictError(t.selectDistrictWarning || "Please choose your district or select 'State-wide (All Districts)'");
       return;
     }
 
@@ -232,11 +232,11 @@ export function HeroSection({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="text-xs font-bold text-slate-800 tracking-wide uppercase">
-              CIVIC TASK NAVIGATOR
+              {t.badgePublicTech || "CIVIC TASK NAVIGATOR"}
             </span>
             <span className="text-slate-300">•</span>
             <span className="text-xs text-slate-600 font-medium">
-              Verified Official <strong className="text-slate-800">.gov.in</strong> Guide
+              {t.badgeOfficialVerification || "Direct Official .gov.in Portals"}
             </span>
           </div>
         </div>
@@ -244,13 +244,14 @@ export function HeroSection({
         {/* Hero Title & Subheading */}
         <div className="text-center max-w-4xl mx-auto mb-10">
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
-            Government procedures,{" "}
+            {t.heroHeadlinePre}{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800">
-              made easier.
+              {t.heroHeadlineHighlight}
             </span>
+            {t.heroHeadlinePost ? ` ${t.heroHeadlinePost}` : ""}
           </h1>
           <p className="mt-4 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
-            Describe what you need to do. We&apos;ll help you understand the process and guide you to the appropriate official government service.
+            {t.heroSubDesc || t.heroSubtitle}
           </p>
         </div>
 
@@ -293,9 +294,7 @@ export function HeroSection({
                     onBlur={() => setTimeout(() => setIsFocused(false), 250)}
                     placeholder={
                       isListening
-                        ? currentLang === "hi"
-                          ? "सुन रहे हैं... बोलें, रुकें, और समाप्त होने पर माइक पर क्लिक करें"
-                          : "Listening continuously... speak freely, then click mic to stop"
+                        ? (t.voiceListening || "Listening continuously... speak freely, then click mic to stop")
                         : t.searchPlaceholder
                     }
                     className="w-full text-slate-900 placeholder:text-slate-400 text-sm sm:text-base bg-transparent focus:outline-none font-medium"
@@ -305,21 +304,15 @@ export function HeroSection({
                     {isListening ? (
                       <span className="text-rose-600 font-semibold flex items-center gap-1.5 animate-pulse">
                         <span className="w-2 h-2 rounded-full bg-rose-600"></span>
-                        {currentLang === "hi"
-                          ? "🔴 रिकॉर्डिंग जारी है... बोलें, रुकें और पूरा होने पर माइक पर क्लिक करें (hi-IN)"
-                          : "🔴 Listening continuously... speak, pause & click mic when done (en-IN)"}
+                        {t.voiceRecordingActive || "🔴 Listening continuously... speak, pause & click mic when done"}
                       </span>
                     ) : voiceStatus === "permission-denied" ? (
                       <span className="text-rose-600 font-medium truncate">
-                        {currentLang === "hi"
-                          ? "⚠️ माइक्रोफ़ोन अनुमति अस्वीकृत। कृपया ब्राउज़र सेटिंग्स में अनुमति दें।"
-                          : "⚠️ Microphone permission denied. Please allow mic access in your browser."}
+                        {t.voiceMicDenied || "⚠️ Microphone permission denied. Please allow mic access in your browser."}
                       </span>
                     ) : voiceStatus === "unavailable" ? (
                       <span className="text-slate-500 font-normal truncate">
-                        {currentLang === "hi"
-                          ? "इस ब्राउज़र में आवाज़ खोज समर्थित नहीं है। कृपया Chrome या Edge का उपयोग करें।"
-                          : "Voice search is not supported in this browser. Please use Chrome or Edge."}
+                        {t.voiceUnavailable || "Voice search is not supported in this browser. Please use Chrome or Edge."}
                       </span>
                     ) : (
                       t.searchHelper
@@ -335,17 +328,13 @@ export function HeroSection({
                     onClick={handleMicClick}
                     aria-label={
                       isListening
-                        ? "Stop recording"
-                        : `Voice search in ${activeVoiceLang}`
+                        ? (t.voiceMicStop || "Stop recording")
+                        : `${t.voiceMicStart || "Voice search"} (${activeVoiceLang})`
                     }
                     title={
                       isListening
-                        ? currentLang === "hi"
-                          ? "रिकॉर्डिंग रोकने के लिए क्लिक करें"
-                          : "Click to stop recording"
-                        : currentLang === "hi"
-                        ? "आवाज़ से खोजें (हिन्दी hi-IN)"
-                        : "Voice search (English en-IN)"
+                        ? (t.voiceMicStop || "Click to stop recording")
+                        : `${t.voiceMicStart || "Voice search"} (${activeVoiceLang})`
                     }
                     className={`relative p-2 sm:p-2.5 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
                       isListening
@@ -402,24 +391,22 @@ export function HeroSection({
                           {currentStateObj.name}
                         </span>
                         <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100/80 text-emerald-800 border border-emerald-200/80">
-                          {selectedState === "all" ? "Central" : "State"}
+                          {selectedState === "all" ? (t.badgeCentral || "Central") : (t.badgeState || "State")}
                         </span>
                       </div>
                       <span className="block text-[11px] font-semibold text-emerald-700 truncate mt-0.5">
                         {selectedState === "all"
-                          ? "Pan-India Central Services"
+                          ? (t.panIndiaCentralServices || "Pan-India Central Services")
                           : selectedDistrict === "statewide"
-                          ? "📍 State-wide (All Districts)"
+                          ? (t.allDistrictsStatewide || "📍 State-wide (All Districts)")
                           : currentDistrictObj
                           ? `📍 ${currentDistrictObj.name.split("(")[0].trim()}`
-                          : "⚠️ Select District"}
+                          : (t.selectDistrictWarning || "⚠️ Select District")}
                       </span>
                     </div>
                   </div>
                   <ChevronDownIcon className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
                 </button>
-
-
               </div>
 
               {/* Prominent Action Button */}
@@ -428,7 +415,7 @@ export function HeroSection({
                 disabled={isSearching}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-bold text-sm shadow-md shadow-blue-700/20 hover:shadow-lg hover:shadow-blue-700/25 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer group shrink-0"
               >
-                <span>{isSearching ? "Searching..." : t.findProcedureBtn}</span>
+                <span>{isSearching ? (t.searchingBtn || "Searching...") : t.findProcedureBtn}</span>
                 <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -438,10 +425,10 @@ export function HeroSection({
               <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-30 animate-fade-in-up">
                 <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Matching Official Indian Procedures
+                    {t.matchingProcedures || "Matching Official Indian Procedures"}
                   </span>
                   <span className="text-[11px] text-blue-700 font-semibold">
-                    Click to view complete roadmap
+                    {t.clickToViewRoadmap || "Click to view complete roadmap"}
                   </span>
                 </div>
                 <div className="divide-y divide-slate-100">
@@ -466,7 +453,7 @@ export function HeroSection({
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 truncate mt-0.5">
-                          Authority: {proc.department}
+                          {t.authorityLabel || "Authority:"} {proc.department}
                         </p>
                       </div>
                       <div className="text-right shrink-0 text-xs text-slate-500">
@@ -487,16 +474,20 @@ export function HeroSection({
                 <SparklesIcon className="w-3.5 h-3.5 text-amber-500" />
                 {t.popularSearchesLabel}
               </span>
-              {EXAMPLE_TASK_QUERIES.map((ex) => (
-                <button
-                  key={ex.label}
-                  type="button"
-                  onClick={() => handleExampleClick(ex.query, ex.stateHint)}
-                  className="px-2.5 py-1 rounded-lg bg-white/90 hover:bg-blue-50/80 border border-slate-200 hover:border-blue-400 text-slate-700 hover:text-blue-700 transition-all shadow-2xs hover:shadow-xs hover:-translate-y-0.5 font-medium cursor-pointer"
-                >
-                  {ex.label}
-                </button>
-              ))}
+              {EXAMPLE_TASK_QUERIES.map((ex) => {
+                const pillLabel = ex.localizedLabels?.[currentLang] || (currentLang === "hi" && ex.labelHi ? ex.labelHi : ex.label);
+                const pillQuery = ex.localizedQueries?.[currentLang] || (currentLang === "hi" && ex.queryHi ? ex.queryHi : ex.query);
+                return (
+                  <button
+                    key={ex.label}
+                    type="button"
+                    onClick={() => handleExampleClick(pillQuery, ex.stateHint)}
+                    className="px-2.5 py-1 rounded-lg bg-white/90 hover:bg-blue-50/80 border border-slate-200 hover:border-blue-400 text-slate-700 hover:text-blue-700 transition-all shadow-2xs hover:shadow-xs hover:-translate-y-0.5 font-medium cursor-pointer"
+                  >
+                    {pillLabel}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -510,15 +501,15 @@ export function HeroSection({
               </div>
               <div>
                 <h4 className="text-sm font-bold text-slate-900">
-                  Verified Official Government Portals (.gov.in & .nic.in)
+                  {t.trustStripTitle || "Verified Official Government Portals (.gov.in & .nic.in)"}
                 </h4>
                 <p className="text-xs text-slate-500">
-                  Always verify that the destination URL ends in an official government domain.
+                  {t.trustStripSubtitle || "Always verify that the destination URL ends in an official government domain."}
                 </p>
               </div>
             </div>
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
-              Zero Middlemen • 100% Free
+              {t.trustZeroMiddlemen || "Zero Middlemen • 100% Free"}
             </span>
           </div>
 
@@ -526,19 +517,19 @@ export function HeroSection({
             <div className="flex items-start gap-2">
               <span className="text-emerald-600 font-bold">✓</span>
               <span>
-                <strong>No Touting:</strong> Direct links to UIDAI, Parivahan, Income Tax, GST, and State e-District.
+                <strong>{t.trustNoToutingTitle || "No Touting:"}</strong> {t.trustNoToutingDesc || "Direct links to UIDAI, Parivahan, Income Tax, GST, and State e-District."}
               </span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-600 font-bold">✓</span>
               <span>
-                <strong>Aadhaar e-KYC:</strong> Clear indicators when procedures can be completed online via OTP.
+                <strong>{t.trustEkycTitle || "Aadhaar e-KYC:"}</strong> {t.trustEkycDesc || "Clear indicators when procedures can be completed online via OTP."}
               </span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-600 font-bold">✓</span>
               <span>
-                <strong>Statutory Fees Only:</strong> We list only government gazetted charges (e.g. ₹50 UIDAI fee).
+                <strong>{t.trustStatutoryFeesTitle || "Statutory Fees Only:"}</strong> {t.trustStatutoryFeesDesc || "We list only government gazetted charges (e.g. ₹50 UIDAI fee)."}
               </span>
             </div>
           </div>
@@ -570,7 +561,7 @@ export function HeroSection({
                   <div className="flex items-center gap-1.5">
                     <MapPinIcon className="w-4 h-4 text-emerald-600" />
                     <h4 id="location-modal-title" className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                      Select State & District
+                      {t.selectStateDistrictTitle || "Select State & District"}
                     </h4>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-0.5">India → State → District</p>
@@ -588,7 +579,7 @@ export function HeroSection({
               {/* 1. State Selector */}
               <div className="mt-3.5">
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  1. State / UT (राज्य) <span className="text-blue-600">*</span>
+                  {t.stateUtLabel || "1. State / UT (राज्य)"} <span className="text-blue-600">*</span>
                 </label>
                 <select
                   value={pendingState}
@@ -606,17 +597,17 @@ export function HeroSection({
               {/* 2. District Selector */}
               {pendingState === "all" ? (
                 <div className="mt-3.5 p-3 rounded-lg bg-blue-50 border border-blue-200/80 text-[11px] text-blue-900">
-                  <span className="font-bold block mb-0.5">🌐 Central Government Services</span>
-                  Central portals (UIDAI Aadhaar, Passport Seva, PAN, Voter ID) apply nationwide. Specific district selection is not required.
+                  <span className="font-bold block mb-0.5">{t.centralGovServicesHeader || "🌐 Central Government Services"}</span>
+                  {t.centralServicesNote || "Central portals (UIDAI Aadhaar, Passport Seva, PAN, Voter ID) apply nationwide. Specific district selection is not required."}
                 </div>
               ) : (
                 <div className="mt-3.5">
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-[11px] font-bold text-slate-700">
-                      2. District / Jurisdiction (जिल्हा) <span className="text-blue-600">*</span>
+                      {t.districtJurisdictionLabel || "2. District / Jurisdiction (जिल्हा)"} <span className="text-blue-600">*</span>
                     </label>
                     <span className="text-[10px] text-slate-500">
-                      {pendingStateObj.districts.length} districts in {pendingStateObj.name}
+                      {pendingStateObj.districts.length} {t.districtsInLabel || "districts in"} {pendingStateObj.name}
                     </span>
                   </div>
                   <select
@@ -631,8 +622,8 @@ export function HeroSection({
                         : "border-slate-300"
                     }`}
                   >
-                    <option value="">-- Please Select District / Municipal Area --</option>
-                    <option value="statewide">State-wide (All Districts / State-Level Service)</option>
+                    <option value="">{t.selectDistrictPlaceholder || "-- Please Select District / Municipal Area --"}</option>
+                    <option value="statewide">{t.statewideOption || "State-wide (All Districts / State-Level Service)"}</option>
                     {pendingStateObj.districts.map((d) => (
                       <option key={d.id} value={d.id}>
                         {d.name}
@@ -643,7 +634,7 @@ export function HeroSection({
                   {(!pendingDistrict || districtError) && (
                     <p className="text-[11px] text-amber-700 font-medium mt-1 flex items-center gap-1">
                       <span>⚠️</span>
-                      <span>{districtError || "Please select a district or choose 'State-wide'"}</span>
+                      <span>{districtError || (t.selectDistrictWarning || "Please select a district or choose 'State-wide'")}</span>
                     </p>
                   )}
                 </div>
@@ -652,7 +643,7 @@ export function HeroSection({
               {/* Official Portal indicator & Action Footer */}
               <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-3">
                 <div className="text-[11px] text-slate-500 truncate min-w-0">
-                  <span className="block text-[10px] text-slate-400">Official Portal:</span>
+                  <span className="block text-[10px] text-slate-400">{t.officialPortalLabel || "Official Portal:"}</span>
                   <a
                     href={getLocalizedOfficialUrl(pendingStateObj.portalUrl, currentLang)}
                     target="_blank"
@@ -673,7 +664,7 @@ export function HeroSection({
                       : "bg-blue-700 hover:bg-blue-800 text-white shadow-md shadow-blue-700/20 hover:-translate-y-0.5 active:translate-y-0"
                   }`}
                 >
-                  Apply Location
+                  {t.applyLocationBtn || "Apply Location"}
                 </button>
               </div>
             </div>
