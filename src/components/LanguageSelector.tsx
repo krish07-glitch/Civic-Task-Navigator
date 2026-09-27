@@ -21,20 +21,20 @@ export function LanguageSelector({ currentLang, onLanguageChange }: LanguageSele
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs transition-colors cursor-pointer"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs transition-colors cursor-pointer dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-200"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
         <span className="text-sm">🌐</span>
-        <span className="font-bold text-slate-800">{currentObj.nativeName}</span>
-        <span className="text-slate-400 font-normal">({currentObj.name})</span>
-        <ChevronDownIcon className="w-3.5 h-3.5 text-slate-400" />
+        <span className="font-bold text-slate-800 dark:text-slate-100">{currentObj.nativeName}</span>
+        <span className="text-slate-400 font-normal dark:text-slate-400">({currentObj.name})</span>
+        <ChevronDownIcon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-3 py-1.5 border-b border-slate-100">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 dark:bg-slate-900 dark:border-slate-800 dark:shadow-slate-950/80">
+          <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Select Language / भाषा निवडा
             </span>
           </div>
@@ -47,14 +47,14 @@ export function LanguageSelector({ currentLang, onLanguageChange }: LanguageSele
                   onLanguageChange(lang.code);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-blue-50 transition-colors ${
+                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors ${
                   currentLang === lang.code
-                    ? "bg-blue-50/80 font-bold text-blue-700"
-                    : "text-slate-700"
+                    ? "bg-blue-50/80 font-bold text-blue-700 dark:bg-blue-950/70 dark:text-blue-400"
+                    : "text-slate-700 dark:text-slate-200"
                 }`}
               >
                 <span className="font-medium">{lang.nativeName}</span>
-                <span className="text-[10px] text-slate-400">{lang.name}</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">{lang.name}</span>
               </button>
             ))}
           </div>

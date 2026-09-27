@@ -30,34 +30,34 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
   return (
     <div className="space-y-4">
       {/* Header with Dynamic Step Count & Live Progress Tracker */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-850 border border-slate-200/90 dark:border-slate-800 shadow-2xs dark:shadow-slate-950/40 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                 {t.officialProcedureTitle || "Official Step-by-Step Procedure"}
               </h3>
-              <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+              <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80">
                 {totalCount} {totalCount === 1 ? (t.stepCountSingular || "Step") : (t.stepsCount || "Steps")}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {t.stepsVerifiedSubtitle || "Verified milestones cross-referenced with authoritative official government portal manuals."}
             </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs font-bold text-slate-700">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
               {completedCount} / {totalCount} {t.completedCount || "completed"}
             </span>
-            <span className="text-[11px] font-semibold text-slate-400">
+            <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
               ({progressPercent}%)
             </span>
           </div>
         </div>
 
         {/* Visual Progress Bar */}
-        <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/80">
+        <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200/80 dark:border-slate-700">
           <div
             className="h-full bg-gradient-to-r from-blue-600 to-emerald-600 transition-all duration-300 rounded-full"
             style={{ width: `${progressPercent}%` }}
@@ -75,8 +75,8 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
               key={step.stepNumber}
               className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 ${
                 isDone
-                  ? "bg-emerald-50/40 border-emerald-300/90 shadow-xs"
-                  : "bg-white border-slate-200/90 shadow-2xs hover:border-slate-300"
+                  ? "bg-emerald-50/40 dark:bg-emerald-950/30 border-emerald-300/90 dark:border-emerald-800/80 shadow-xs"
+                  : "bg-white dark:bg-slate-850 border-slate-200/90 dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700"
               }`}
             >
               {/* Step Header: Number, Title, Mode, and Mark-As-Done Toggle */}
@@ -94,7 +94,7 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
                   <div className="min-w-0">
                     <h4
                       className={`text-sm sm:text-base font-bold transition-colors ${
-                        isDone ? "text-emerald-950 line-through decoration-emerald-500/60" : "text-slate-900"
+                        isDone ? "text-emerald-950 dark:text-emerald-200 line-through decoration-emerald-500/60" : "text-slate-900 dark:text-white"
                       }`}
                     >
                       {step.title}
@@ -107,10 +107,10 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       step.mode === "offline" || !step.isOnline
-                        ? "bg-amber-50 text-amber-800 border border-amber-200"
+                        ? "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80"
                         : step.mode === "hybrid"
-                        ? "bg-indigo-50 text-indigo-800 border border-indigo-200"
-                        : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80"
+                        : "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80"
                     }`}
                   >
                     {step.mode === "offline" || !step.isOnline
@@ -127,7 +127,7 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
                       isDone
                         ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs hover:bg-emerald-700"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                        : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                     }`}
                     aria-label={`Mark step ${step.stepNumber} as ${isDone ? "incomplete" : "done"}`}
                   >
@@ -138,20 +138,20 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
               </div>
 
               {/* Step Short Explanation */}
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pl-9">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pl-9">
                 {step.description}
               </p>
 
               {/* Authoritative Details: Official Portal & Estimated Duration */}
-              <div className="flex flex-wrap items-center gap-3 pl-9 pt-1 text-[11px] text-slate-500">
-                <span className="font-semibold text-slate-700 flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-3 pl-9 pt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1">
                   <span className="text-slate-400">{t.deptWindow || "Department / Window:"}</span> {step.agencyOrPortal}
                 </span>
 
                 {step.estimatedDuration && (
                   <>
                     <span>•</span>
-                    <span className="text-blue-700 font-medium">
+                    <span className="text-blue-700 dark:text-blue-400 font-medium">
                       {t.estTime || "Est. Time:"} {step.estimatedDuration}
                     </span>
                   </>
@@ -160,8 +160,8 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
 
               {/* Official Source Reference Citation */}
               {(step.officialSource || step.sourceReference) && (
-                <div className="ml-9 p-2 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center gap-1.5 text-[11px] text-slate-600">
-                  <ShieldCheckIcon className="w-3.5 h-3.5 text-blue-700 shrink-0" />
+                <div className="ml-9 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300">
+                  <ShieldCheckIcon className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
                   <span className="truncate">
                     <strong>{t.officialSource || "Official Source:"}</strong>{" "}
                     {step.officialSource || step.sourceReference}
@@ -171,8 +171,8 @@ export function StepsSection({ steps, currentLang = "en" }: StepsSectionProps) {
 
               {/* Official Verification Tip (If any) */}
               {step.officialTip && (
-                <div className="ml-9 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-2 text-xs text-amber-900">
-                  <AlertCircleIcon className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="ml-9 p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/80 flex items-start gap-2 text-xs text-amber-900 dark:text-amber-200">
+                  <AlertCircleIcon className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <span>
                     <strong>{t.officialTip || "Official Tip:"}</strong> {step.officialTip}
                   </span>

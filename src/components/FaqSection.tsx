@@ -335,16 +335,16 @@ export function FaqSection({ currentLang = "en" }: { currentLang?: SupportedLang
   const faqs = data.faqs;
 
   return (
-    <section id="faq" className="py-20 md:py-24 bg-slate-50 border-b border-slate-200/80">
+    <section id="faq" className="py-20 md:py-24 bg-slate-50 border-b border-slate-200/80 dark:bg-slate-950 dark:border-slate-800 transition-colors">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200 dark:bg-blue-950/70 dark:text-blue-300 dark:border-blue-800">
             {data.badge}
           </span>
-          <h2 className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight dark:text-white">
             {data.title}
           </h2>
-          <p className="mt-3 text-base text-slate-600">
+          <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
             {data.subtitle}
           </p>
         </div>
@@ -355,25 +355,25 @@ export function FaqSection({ currentLang = "en" }: { currentLang?: SupportedLang
             return (
               <div
                 key={idx}
-                className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden transition-all shadow-2xs"
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-all shadow-2xs"
               >
                 <button
                   type="button"
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors cursor-pointer"
+                  className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-base font-bold text-slate-900">
+                  <span className="text-base font-bold text-slate-900 dark:text-white">
                     {faq.q}
                   </span>
                   <ChevronDownIcon
-                    className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-blue-700" : ""
+                    className={`w-5 h-5 text-slate-400 dark:text-slate-500 shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-blue-700 dark:text-blue-400" : ""
                     }`}
                   />
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
+                  <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4">
                     {faq.a}
                   </div>
                 )}

@@ -376,10 +376,10 @@ export function TrustStats({ currentLang = "en" }: { currentLang?: SupportedLang
   };
 
   return (
-    <section id="trust" className="py-20 bg-white border-b border-slate-200/80">
+    <section id="trust" className="py-20 bg-white border-b border-slate-200/80 dark:bg-slate-900/60 dark:border-slate-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Stats Row */}
-        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-2xl mb-20">
+        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-8 sm:p-12 text-white shadow-2xl mb-20 border border-slate-800">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
             {stats.map((item, idx) => (
               <div key={idx} className={`${idx !== 0 ? "pt-6 lg:pt-0 lg:pl-8" : ""}`}>
@@ -395,13 +395,13 @@ export function TrustStats({ currentLang = "en" }: { currentLang?: SupportedLang
 
         {/* Pillars Grid */}
         <div className="text-center max-w-3xl mx-auto mb-14">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-50 px-3 py-1 rounded-full border border-blue-200 dark:bg-blue-950/70 dark:text-blue-300 dark:border-blue-800">
             {data.badge}
           </span>
-          <h2 className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight dark:text-white">
             {data.title}
           </h2>
-          <p className="mt-3 text-base text-slate-600">
+          <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
             {data.subtitle}
           </p>
         </div>
@@ -410,13 +410,13 @@ export function TrustStats({ currentLang = "en" }: { currentLang?: SupportedLang
           {pillars.map((pillar, idx) => (
             <div
               key={idx}
-              className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-6 hover:bg-slate-50 transition-colors"
+              className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-6 hover:bg-slate-50 transition-colors dark:bg-slate-850 dark:border-slate-800 dark:hover:bg-slate-800"
             >
-              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center mb-5 shadow-2xs">
+              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center mb-5 shadow-2xs dark:bg-slate-800 dark:border-slate-700">
                 {renderIcon(pillar.iconType)}
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">{pillar.title}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">{pillar.description}</p>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">{pillar.title}</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{pillar.description}</p>
             </div>
           ))}
         </div>

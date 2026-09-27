@@ -39,7 +39,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900 selection:bg-blue-700 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 selection:bg-blue-700 selection:text-white transition-colors duration-200">
       {/* Top Navbar with Vernacular Language Selector */}
       <Navbar
         currentLang={currentLang}
