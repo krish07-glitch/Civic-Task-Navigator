@@ -32,8 +32,53 @@ export function isSpeechRecognitionSupported(): boolean {
   );
 }
 
+/**
+ * Robustly stitches two speech transcript segments without duplicating words.
+ * Handles:
+ * - Direct prefix/containment overlaps (e.g. restarts that repeat earlier text)
+ * - Word-level boundary overlaps (e.g. Android Chrome boundary repeats across sessions)
+ * - Identical phrases or sub-phrases
+ */
+export function stitchTranscripts(prevText: string = "", currText: string = ""): string {
+  const p = prevText.trim();
+  const c = currText.trim();
+
+  if (!p) return c;
+  if (!c) return p;
+
+  const pLower = p.toLowerCase();
+  const cLower = c.toLowerCase();
+
+  // If curr already contains prev entirely or is identical, return curr
+  if (cLower === pLower) return c;
+  if (cLower.startsWith(pLower + " ") || cLower.startsWith(pLower)) return c;
+
+  // If prev already ends with curr or curr is completely contained at the end of prev
+  if (pLower.endsWith(" " + cLower) || pLower === cLower) return p;
+
+  const pWords = p.split(/\s+/);
+  const cWords = c.split(/\s+/);
+
+  // Check for word-level boundary overlap (up to min length)
+  const maxOverlap = Math.min(pWords.length, cWords.length);
+  for (let overlap = maxOverlap; overlap >= 1; overlap--) {
+    const pSuffix = pWords.slice(pWords.length - overlap).map((w) => w.toLowerCase()).join(" ");
+    const cPrefix = cWords.slice(0, overlap).map((w) => w.toLowerCase()).join(" ");
+
+    if (pSuffix === cPrefix) {
+      // Overlap matched! Keep previous and append only the new remainder
+      const remainingC = cWords.slice(overlap).join(" ");
+      return remainingC ? `${p} ${remainingC}` : p;
+    }
+  }
+
+  // No overlap found, join with space
+  return `${p} ${c}`;
+}
+
 export interface UseVoiceSearchOptions {
   currentLang: string;
+  initialQuery?: string;
   onSpeechChange?: (transcript: string) => void;
   onSpeechRecognized?: (transcript: string) => void;
 }
@@ -45,9 +90,9 @@ export interface UseVoiceSearchResult {
   activeLanguage: SupportedVoiceLang;
   errorMessage: string | null;
   currentTranscript: string;
-  startListening: () => void;
+  startListening: (initialText?: string) => void;
   stopListening: () => void;
-  toggleListening: () => void;
+  toggleListening: (initialText?: string) => void;
   resetStatus: () => void;
 }
 
@@ -94,6 +139,7 @@ interface SpeechRecognitionAlternative {
 
 export function useVoiceSearch({
   currentLang,
+  initialQuery = "",
   onSpeechChange,
   onSpeechRecognized,
 }: UseVoiceSearchOptions): UseVoiceSearchResult {
@@ -103,13 +149,11 @@ export function useVoiceSearch({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentTranscript, setCurrentTranscript] = useState<string>("");
 
-  // Point 12: Use an explicit ref to distinguish automatic browser ending vs user stop
+  // Explicit ref to distinguish user-triggered stop vs browser-triggered onend
   const isListeningRef = useRef<boolean>(false);
-
-  // Track active recognition state to prevent creating new instances during re-renders (Points 8 & 9)
   const isRecognizingRef = useRef<boolean>(false);
 
-  // Stable references for props and callbacks to prevent closure stalls
+  // Stable references for callbacks to prevent stale closure captures
   const currentLangRef = useRef<string>(currentLang);
   currentLangRef.current = currentLang;
 
@@ -119,12 +163,16 @@ export function useVoiceSearch({
   const onSpeechRecognizedRef = useRef(onSpeechRecognized);
   onSpeechRecognizedRef.current = onSpeechRecognized;
 
-  // Point 9: Store the recognition instance in useRef rather than recreating it on render
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Buffer accumulated across automatic pause-restarts
-  const accumulatedTranscriptRef = useRef<string>("");
+  // Pre-existing text typed before mic was activated
+  const initialTextRef = useRef<string>(initialQuery);
+
+  // Finalized speech accumulated across auto-restart sessions
+  const committedFinalRef = useRef<string>("");
+
+  // Transcripts within the active recognition session
   const currentSessionFinalRef = useRef<string>("");
   const currentSessionInterimRef = useRef<string>("");
 
@@ -134,49 +182,29 @@ export function useVoiceSearch({
   useEffect(() => {
     const supported = isSpeechRecognitionSupported();
     setIsSupported(supported);
-    if (!supported) {
-      console.warn("[VOICE] Speech recognition is not supported in this browser environment.");
-    }
   }, []);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      isListeningRef.current = false;
-      isRecognizingRef.current = false;
-      if (restartTimeoutRef.current) {
-        clearTimeout(restartTimeoutRef.current);
-      }
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.onstart = null;
-          recognitionRef.current.onresult = null;
-          recognitionRef.current.onerror = null;
-          recognitionRef.current.onend = null;
-          recognitionRef.current.abort();
-        } catch {
-          // Ignore
-        }
-        recognitionRef.current = null;
-      }
-    };
+  // Compute full query combining initial text + committed final + current session
+  const computeFullQuery = useCallback((): string => {
+    const sessionText = currentSessionFinalRef.current
+      ? (currentSessionInterimRef.current
+          ? `${currentSessionFinalRef.current} ${currentSessionInterimRef.current}`
+          : currentSessionFinalRef.current)
+      : currentSessionInterimRef.current;
+
+    const fullVoice = stitchTranscripts(committedFinalRef.current, sessionText);
+    return stitchTranscripts(initialTextRef.current, fullVoice);
   }, []);
 
   // Starts a clean native SpeechRecognition session
   const startRecognitionSession = useCallback(() => {
-    // Point 11: If user is not in voice mode, do not start
-    if (!isListeningRef.current) {
-      console.log("[VOICE] startRecognitionSession aborted: isListeningRef is false.");
-      return;
-    }
+    if (!isListeningRef.current) return;
 
-    // Point 8: Prevent creating a duplicate instance if one is already actively recognizing
     if (isRecognizingRef.current && recognitionRef.current) {
-      console.log("[VOICE] startRecognitionSession: recognition is already active, reusing existing instance.");
       return;
     }
 
-    // Clean up any ended/stale recognition instance
+    // Clean up previous instance
     if (recognitionRef.current) {
       try {
         recognitionRef.current.onstart = null;
@@ -191,13 +219,11 @@ export function useVoiceSearch({
       isRecognizingRef.current = false;
     }
 
-    // Point 1: Determine SpeechRecognition constructor
     const SpeechRecognitionConstructor =
       (window as unknown as { SpeechRecognition?: new () => SpeechRecognitionInstance }).SpeechRecognition ||
       (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognitionInstance }).webkitSpeechRecognition;
 
     if (!SpeechRecognitionConstructor) {
-      console.warn("[VOICE] No SpeechRecognition constructor found in window.");
       isListeningRef.current = false;
       setIsListening(false);
       setStatus("unavailable");
@@ -209,19 +235,13 @@ export function useVoiceSearch({
       const recognition = new SpeechRecognitionConstructor();
       recognitionRef.current = recognition;
 
-      // Point 2 & 3: Configure language, continuous mode, and interim results
       const chosenLang = getVoiceRecognitionLang(currentLangRef.current);
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
       recognition.lang = chosenLang;
 
-      // Point 17: Diagnostic logging
-      console.log(`[VOICE] start: using lang="${chosenLang}", continuous=true, interimResults=true`);
-
-      // Point 10: Assign event handlers directly to prevent duplicate attachments
       recognition.onstart = () => {
-        console.log("[VOICE] onstart: recognition session started actively listening.");
         isRecognizingRef.current = true;
         if (isListeningRef.current) {
           setIsListening(true);
@@ -230,16 +250,13 @@ export function useVoiceSearch({
         }
       };
 
-      // Point 4 & 7: onresult handler with full diagnostic logging and transcript accumulation
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         if (!isListeningRef.current) return;
-
-        // Point 4: Log event metrics
-        console.log(`[VOICE] result: length=${event.results.length}, resultIndex=${event.resultIndex}`);
 
         let sessionFinal = "";
         let sessionInterim = "";
 
+        // Iterate through all results in the current session
         for (let i = 0; i < event.results.length; i++) {
           const res =
             event.results[i] ||
@@ -254,12 +271,10 @@ export function useVoiceSearch({
           const transcript = alt.transcript.trim();
           if (!transcript) continue;
 
-          // Point 4: Log individual result items
-          console.log(`[VOICE] result item[${i}]: transcript="${transcript}", isFinal=${res.isFinal}`);
-
           if (res.isFinal) {
             sessionFinal += (sessionFinal ? " " : "") + transcript;
           } else {
+            // Interim results ALWAYS replace the previous interim value, never append
             sessionInterim += (sessionInterim ? " " : "") + transcript;
           }
         }
@@ -267,49 +282,32 @@ export function useVoiceSearch({
         currentSessionFinalRef.current = sessionFinal;
         currentSessionInterimRef.current = sessionInterim;
 
-        // Combine session finalized text with current interim stream
-        const currentSessionCombined = (
-          sessionFinal + (sessionFinal && sessionInterim ? " " : "") + sessionInterim
-        ).trim();
+        const fullQuery = computeFullQuery();
 
-        // Combine previously accumulated text with current session text
-        const base = accumulatedTranscriptRef.current.trim();
-        const fullTranscript = base
-          ? (currentSessionCombined ? `${base} ${currentSessionCombined}` : base)
-          : currentSessionCombined;
-
-        // Point 5 & 6: Deliver non-empty transcript to React state
-        if (fullTranscript.trim().length > 0) {
-          const text = fullTranscript.trim();
-          console.log(`[VOICE] transcript: "${text}"`);
-          if (sessionFinal && !sessionInterim) {
-            console.log(`[VOICE] final: "${text}"`);
-          }
+        if (fullQuery.trim().length > 0) {
+          const text = fullQuery.trim();
           setCurrentTranscript(text);
           onSpeechChangeRef.current?.(text);
-          onSpeechRecognizedRef.current?.(text);
+          if (sessionFinal && !sessionInterim) {
+            onSpeechRecognizedRef.current?.(text);
+          }
         }
       };
 
-      // Point 13 & 14: Comprehensive onerror handling with diagnostics
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         const error = event.error;
-        console.warn(`[VOICE] error: ${error}`, event.message || "");
 
-        // Point 14: Pauses during speech are expected; do not disable voice mode
+        // Pauses during speech are expected; do not disable voice mode
         if (error === "no-speech") {
-          console.log("[VOICE] error: 'no-speech' received (pause in speech); retaining voice mode.");
           return;
         }
 
         if (error === "aborted") {
-          console.log("[VOICE] error: 'aborted' (recognition instance stopped/restarting).");
           return;
         }
 
         // Fatal permission denial
         if (error === "not-allowed" || error === "service-not-allowed") {
-          console.error("[VOICE] error: microphone permission denied by browser or system.");
           isListeningRef.current = false;
           isRecognizingRef.current = false;
           setIsListening(false);
@@ -323,7 +321,6 @@ export function useVoiceSearch({
         }
 
         if (error === "audio-capture") {
-          console.error("[VOICE] error: no audio capture device found.");
           isListeningRef.current = false;
           isRecognizingRef.current = false;
           setIsListening(false);
@@ -337,40 +334,31 @@ export function useVoiceSearch({
         }
 
         if (error === "network") {
-          console.warn("[VOICE] error: temporary network error during speech recognition.");
           return;
         }
       };
 
-      // Point 11 & 12: onend handler distinguishes between user stop and silence auto-restart
       recognition.onend = () => {
-        console.log(`[VOICE] end: isListeningRef=${isListeningRef.current}`);
         isRecognizingRef.current = false;
 
-        // Point 6 & 7: Commit any finalized or interim speech from this session into persistent buffer
+        // Commit this session's speech into committedFinalRef before restarting
         const sessionCompletedText = (
           currentSessionFinalRef.current.trim() ||
           currentSessionInterimRef.current.trim()
         );
 
         if (sessionCompletedText) {
-          const prev = accumulatedTranscriptRef.current.trim();
-          if (!prev.endsWith(sessionCompletedText)) {
-            accumulatedTranscriptRef.current = prev
-              ? `${prev} ${sessionCompletedText}`
-              : sessionCompletedText;
-          }
-          console.log(
-            `[VOICE] end: committed session text "${sessionCompletedText}". accumulated="${accumulatedTranscriptRef.current}"`
+          committedFinalRef.current = stitchTranscripts(
+            committedFinalRef.current,
+            sessionCompletedText
           );
         }
 
         currentSessionFinalRef.current = "";
         currentSessionInterimRef.current = "";
 
-        // If user is still in voice mode, automatically restart recognition (Test 3)
+        // If user is still in voice mode, automatically restart recognition
         if (isListeningRef.current) {
-          console.log("[VOICE] end: restarting recognition because user is still in listening mode...");
           if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
           restartTimeoutRef.current = setTimeout(() => {
             if (isListeningRef.current) {
@@ -378,16 +366,13 @@ export function useVoiceSearch({
             }
           }, 150);
         } else {
-          console.log("[VOICE] end: session ended normally by user manual click.");
           setIsListening(false);
           setStatus("idle");
         }
       };
 
       recognition.start();
-      console.log("[VOICE] start: recognition.start() executed.");
     } catch (err: unknown) {
-      console.error("[VOICE] error: exception starting recognition:", err);
       isRecognizingRef.current = false;
       if (isListeningRef.current) {
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
@@ -402,40 +387,36 @@ export function useVoiceSearch({
         setErrorMessage("Could not initialize microphone. Please check browser permissions.");
       }
     }
-  }, []);
+  }, [computeFullQuery]);
 
-  const startListening = useCallback(() => {
-    console.log("[VOICE] startListening triggered by user.");
+  const startListening = useCallback((initialText?: string) => {
     if (restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
       restartTimeoutRef.current = null;
     }
 
     setErrorMessage(null);
-    accumulatedTranscriptRef.current = "";
+    initialTextRef.current = (initialText ?? initialQuery ?? "").trim();
+    committedFinalRef.current = "";
     currentSessionFinalRef.current = "";
     currentSessionInterimRef.current = "";
-    setCurrentTranscript("");
+    setCurrentTranscript(initialTextRef.current);
 
     if (!isSpeechRecognitionSupported()) {
-      console.warn("[VOICE] Cannot start: SpeechRecognition not supported.");
       setStatus("unavailable");
       setIsListening(false);
       setErrorMessage("Voice search is not supported in this browser. Please use Chrome or Edge.");
       return;
     }
 
-    // User explicitly began voice session
     isListeningRef.current = true;
     setIsListening(true);
     setStatus("listening");
 
     startRecognitionSession();
-  }, [startRecognitionSession]);
+  }, [initialQuery, startRecognitionSession]);
 
   const stopListening = useCallback(() => {
-    console.log("[VOICE] stopListening triggered by user.");
-    // Point 11: Mark user intention as stopped so onend does NOT restart
     isListeningRef.current = false;
     isRecognizingRef.current = false;
     setIsListening(false);
@@ -456,26 +437,26 @@ export function useVoiceSearch({
       recognitionRef.current = null;
     }
 
-    // Point 6: Deliver final accumulated transcript without clearing it
-    const prev = accumulatedTranscriptRef.current.trim();
-    const curr = (
+    // Deliver final combined transcript
+    const sessionCompletedText = (
       currentSessionFinalRef.current.trim() ||
       currentSessionInterimRef.current.trim()
     );
-    const full = prev ? (curr ? `${prev} ${curr}` : prev) : curr;
-    if (full) {
-      console.log(`[VOICE] final transcript on stop: "${full}"`);
-      setCurrentTranscript(full);
-      onSpeechChangeRef.current?.(full);
-      onSpeechRecognizedRef.current?.(full);
+    const fullVoice = stitchTranscripts(committedFinalRef.current, sessionCompletedText);
+    const fullQuery = stitchTranscripts(initialTextRef.current, fullVoice);
+
+    if (fullQuery) {
+      setCurrentTranscript(fullQuery);
+      onSpeechChangeRef.current?.(fullQuery);
+      onSpeechRecognizedRef.current?.(fullQuery);
     }
   }, []);
 
-  const toggleListening = useCallback(() => {
+  const toggleListening = useCallback((initialText?: string) => {
     if (isListeningRef.current || isListening) {
       stopListening();
     } else {
-      startListening();
+      startListening(initialText);
     }
   }, [isListening, startListening, stopListening]);
 
@@ -502,9 +483,33 @@ export function useVoiceSearch({
     setStatus("idle");
     setErrorMessage(null);
     setCurrentTranscript("");
-    accumulatedTranscriptRef.current = "";
+    initialTextRef.current = "";
+    committedFinalRef.current = "";
     currentSessionFinalRef.current = "";
     currentSessionInterimRef.current = "";
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isListeningRef.current = false;
+      isRecognizingRef.current = false;
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.onstart = null;
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.onerror = null;
+          recognitionRef.current.onend = null;
+          recognitionRef.current.abort();
+        } catch {
+          // Ignore
+        }
+        recognitionRef.current = null;
+      }
+    };
   }, []);
 
   return {

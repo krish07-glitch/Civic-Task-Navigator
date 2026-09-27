@@ -144,7 +144,6 @@ export function HeroSection({
 
   // Browser-native speech recognition hook (Strictly English en-IN & Hindi hi-IN)
   const handleSpeechRecognized = useCallback((transcript: string) => {
-    console.log("[HERO] handleSpeechRecognized received transcript:", transcript);
     if (typeof transcript === "string" && transcript.trim().length > 0) {
       updateSearchQuery(transcript);
     }
@@ -155,31 +154,15 @@ export function HeroSection({
     isListening,
     activeLanguage: activeVoiceLang,
     toggleListening,
-    currentTranscript,
   } = useVoiceSearch({
     currentLang,
     onSpeechChange: handleSpeechRecognized,
     onSpeechRecognized: handleSpeechRecognized,
   });
 
-  // Ensure currentTranscript stays continuously synchronized with visible searchQuery state
-  useEffect(() => {
-    if (isListening && currentTranscript && currentTranscript.trim().length > 0) {
-      console.log("[HERO] syncing currentTranscript to searchQuery:", currentTranscript);
-      updateSearchQuery(currentTranscript);
-    }
-  }, [currentTranscript, isListening]);
-
   const handleMicClick = () => {
-    if (!isListening) {
-      // Clear old search query so recognized speech displays cleanly from the start
-      console.log("[HERO] Starting voice search, clearing previous query.");
-      setSearchQuery("");
-      setQuickMatches([]);
-    } else {
-      console.log("[HERO] Stopping voice search. Preserving final query:", searchQuery);
-    }
-    toggleListening();
+    // Preserve any text that was already manually entered before microphone activation
+    toggleListening(searchQuery);
   };
 
   const triggerSearch = (query: string, stateId: IndianStateId, districtId: string) => {
