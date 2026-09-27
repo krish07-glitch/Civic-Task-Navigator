@@ -1,0 +1,183 @@
+"use client";
+
+import React, { useState } from "react";
+import { ServiceStep } from "@/types/service";
+import { AlertCircleIcon, CheckCircleIcon, ShieldCheckIcon } from "../Icons";
+
+interface StepsSectionProps {
+  steps: ServiceStep[];
+}
+
+export function StepsSection({ steps }: StepsSectionProps) {
+  // Track "Mark as done" state per step number
+  const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
+
+  const toggleStepDone = (stepNumber: number) => {
+    setCompletedSteps((prev) => ({
+      ...prev,
+      [stepNumber]: !prev[stepNumber],
+    }));
+  };
+
+  const completedCount = steps.filter((s) => completedSteps[s.stepNumber]).length;
+  const totalCount = steps.length;
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  return (
+    <div className="space-y-4">
+      {/* Header with Dynamic Step Count & Live Progress Tracker */}
+      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+                Official Step-by-Step Procedure
+              </h3>
+              <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+                {totalCount} {totalCount === 1 ? "Step" : "Steps"}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Verified milestones cross-referenced with authoritative official government portal manuals.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs font-bold text-slate-700">
+              {completedCount} of {totalCount} completed
+            </span>
+            <span className="text-[11px] font-semibold text-slate-400">
+              ({progressPercent}%)
+            </span>
+          </div>
+        </div>
+
+        {/* Visual Progress Bar */}
+        <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/80">
+          <div
+            className="h-full bg-gradient-to-r from-blue-600 to-emerald-600 transition-all duration-300 rounded-full"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Sequential Dynamic Steps List */}
+      <div className="space-y-3.5">
+        {steps.map((step) => {
+          const isDone = Boolean(completedSteps[step.stepNumber]);
+
+          return (
+            <div
+              key={step.stepNumber}
+              className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 ${
+                isDone
+                  ? "bg-emerald-50/40 border-emerald-300/90 shadow-xs"
+                  : "bg-white border-slate-200/90 shadow-2xs hover:border-slate-300"
+              }`}
+            >
+              {/* Step Header: Number, Title, Mode, and Mark-As-Done Toggle */}
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <span
+                    className={`w-7 h-7 rounded-xl text-xs font-bold flex items-center justify-center shrink-0 shadow-xs transition-colors ${
+                      isDone
+                        ? "bg-emerald-600 text-white"
+                        : "bg-blue-700 text-white"
+                    }`}
+                  >
+                    {isDone ? "✓" : step.stepNumber}
+                  </span>
+                  <div className="min-w-0">
+                    <h4
+                      className={`text-sm sm:text-base font-bold transition-colors ${
+                        isDone ? "text-emerald-950 line-through decoration-emerald-500/60" : "text-slate-900"
+                      }`}
+                    >
+                      {step.title}
+                    </h4>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 pl-9 sm:pl-0">
+                  {/* Mode Badge (Online / Offline / Hybrid) */}
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      step.mode === "offline" || !step.isOnline
+                        ? "bg-amber-50 text-amber-800 border border-amber-200"
+                        : step.mode === "hybrid"
+                        ? "bg-indigo-50 text-indigo-800 border border-indigo-200"
+                        : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                    }`}
+                  >
+                    {step.mode === "offline" || !step.isOnline
+                      ? "In-Person Attendance"
+                      : step.mode === "hybrid"
+                      ? "Hybrid (Online + Physical)"
+                      : "Online (Portal / OTP)"}
+                  </span>
+
+                  {/* Explicit "Mark as done" Button / Checkbox */}
+                  <button
+                    type="button"
+                    onClick={() => toggleStepDone(step.stepNumber)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
+                      isDone
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs hover:bg-emerald-700"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                    }`}
+                    aria-label={`Mark step ${step.stepNumber} as ${isDone ? "incomplete" : "done"}`}
+                  >
+                    <CheckCircleIcon className={`w-3.5 h-3.5 ${isDone ? "text-white" : "text-slate-400"}`} />
+                    <span>{isDone ? "✓ Done" : "Mark as done"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Step Short Explanation */}
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pl-9">
+                {step.description}
+              </p>
+
+              {/* Authoritative Details: Official Portal & Estimated Duration */}
+              <div className="flex flex-wrap items-center gap-3 pl-9 pt-1 text-[11px] text-slate-500">
+                <span className="font-semibold text-slate-700 flex items-center gap-1">
+                  <span className="text-slate-400">Department / Window:</span> {step.agencyOrPortal}
+                </span>
+
+                {step.estimatedDuration && (
+                  <>
+                    <span>•</span>
+                    <span className="text-blue-700 font-medium">
+                      Est. Time: {step.estimatedDuration}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Official Source Reference Citation */}
+              {(step.officialSource || step.sourceReference) && (
+                <div className="ml-9 p-2 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center gap-1.5 text-[11px] text-slate-600">
+                  <ShieldCheckIcon className="w-3.5 h-3.5 text-blue-700 shrink-0" />
+                  <span className="truncate">
+                    <strong>Official Source:</strong>{" "}
+                    {step.officialSource || step.sourceReference}
+                  </span>
+                </div>
+              )}
+
+              {/* Official Verification Tip (If any) */}
+              {step.officialTip && (
+                <div className="ml-9 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-2 text-xs text-amber-900">
+                  <AlertCircleIcon className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Official Tip:</strong> {step.officialTip}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
